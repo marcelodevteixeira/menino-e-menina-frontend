@@ -48,5 +48,5 @@ Por ser uma aplicação web estática, a execução é imediata e não requer in
 O projeto está hospedado diretamente na nuvem (Static Site no Render) e conectado à API pública.
 - **Acessar a Aplicação:** [https://loja-menino-e-menina.onrender.com]
 
-## 👨‍💻 Desenvolvedor
-- **Marcelo Teixeira** - Responsável pelo Frontend e Integração da UI. Projeto Integrador (UniCEUB - 2026).
+## Desenvolvedor
+- **Marcelo Teixeira** - Frontend e Integração da UI. Projeto Integrador (UniCEUB - 2026).
