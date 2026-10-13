@@ -4,7 +4,7 @@ Este é o frontend da aplicação web "Menino E Menina", um sistema de gestão d
 
 Este repositório contém estritamente a **Interface de Usuário (UI)** e a **Lógica de Comunicação (Client-side)**, desenvolvidas em HTML, CSS e JavaScript puros (Single Page Application). O backend do sistema foi desenvolvido separadamente.
 
-## 🎯 Objetivo do Projeto
+## Objetivo do Projeto
 
 Prover uma interface limpa, intuitiva e amigável para que a administração da loja possa:
 - Visualizar o catálogo completo de produtos em um formato de *dashboard*.
@@ -13,14 +13,14 @@ Prover uma interface limpa, intuitiva e amigável para que a administração da 
 - Cadastrar novos itens no sistema de forma dinâmica.
 - Realizar atualizações rápidas de quantidade no inventário.
 
-## ⚙️ Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 - **HTML5:** Estruturação semântica do layout.
 - **CSS3:** Estilização baseada em variáveis (Custom Properties), design responsivo (Mobile-first) e animações suaves, garantindo uma interface moderna e minimalista.
 - **JavaScript (Vanilla):** Lógica de negócios no frontend, manipulação do DOM e comunicação assíncrona com o servidor.
 - **API Fetch:** Integração HTTP com a API RESTful do backend.
 
-## 🔌 Integração e Arquitetura
+## Integração e Arquitetura
 
 O frontend atua de forma totalmente desacoplada, conectando-se a uma API REST hospedada remotamente. Não há dependência de ambientes locais como Node.js para execução da interface, facilitando o deploy via serviços de hospedagem estática.
 
@@ -36,7 +36,7 @@ Ao ser acessada, a aplicação exibe uma tela amigável de "Conectando ao servid
 
 *Nota: O backend (Java, Quarkus, Banco H2) foi desenvolvido colaborativamente e o seu código fonte e documentação própria podem ser encontrados no repositório correspondente.*
 
-## 🚀 Como Executar
+## Como Executar
 
 Por ser uma aplicação web estática, a execução é imediata e não requer instalação de dependências.
 
