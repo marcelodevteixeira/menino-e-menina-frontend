@@ -54,7 +54,7 @@ Como a API está hospedada no plano gratuito da Render, a primeira requisição 
 
 ### Versão Online
 A aplicação é publicada como *Static Site* na Render conectada à API pública:
-- **Aplicação:** [https://loja-menino-e-menina.onrender.com](https://loja-menino-e-menina.onrender.com)
+- **Aplicação:** [https://menino-e-menina-app.onrender.com](https://menino-e-menina-app.onrender.com)
 
 ## Desenvolvedor
 - **Marcelo Teixeira** — Frontend e Integração da UI | Projeto Integrador (**UniCEUB** - 2026)
