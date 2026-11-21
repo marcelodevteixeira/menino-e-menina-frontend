@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Menino E Menina - Gestão de Produtos</title>
-    <meta name="description" content="Sistema de gestão e controle de produtos e estoque da loja Menino E Menina." />
-    <meta property="og:title" content="Menino E Menina - Gestão de Produtos" />
-    <meta property="og:description" content="Sistema de gestão e controle de produtos e estoque da loja Menino E Menina." />
+    <title>Menino E Menina - Sistema de Gestão</title>
+    <meta name="description" content="Sistema de gestão comercial, estoque, caixa, vendas e cadastros da loja Menino E Menina." />
+    <meta property="og:title" content="Menino E Menina - Sistema de Gestão" />
+    <meta property="og:description" content="Sistema de gestão comercial, estoque, caixa, vendas e cadastros da loja Menino E Menina." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet" />
@@ -24,43 +24,100 @@
       </div>
     </div>
 
+    <!-- Mobile Backdrop -->
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
     <!-- Mobile Header -->
     <header class="mobile-header">
-      <button class="menu-toggle-btn" id="mobile-menu-btn" aria-label="Abrir menu de categorias">
+      <button class="menu-toggle-btn" id="mobile-menu-btn" aria-label="Abrir menu">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="3" y1="12" x2="21" y2="12"></line>
           <line x1="3" y1="6" x2="21" y2="6"></line>
           <line x1="3" y1="18" x2="21" y2="18"></line>
         </svg>
       </button>
-      <div class="brand-title" style="font-size: 19px;">
-        Menino E Menina
-      </div>
-      <button class="btn-primary" id="mobile-new-product-btn" style="padding: 7px 12px; font-size: 13px;">
-        + Novo
-      </button>
+      <div class="brand-title" style="font-size: 18px;">Menino E Menina</div>
+      <button class="btn-secondary btn-sm" id="mobile-auth-btn">Entrar</button>
     </header>
 
     <div class="app-container">
-      <!-- Left Sidebar (Categorias) -->
+      <!-- Sidebar -->
       <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
           <div class="brand-title">
             <span>Menino E Menina</span>
           </div>
           <div style="margin-top: 6px;">
-            <span class="brand-badge">Módulo de Produtos</span>
+            <span class="brand-badge">Gestão Comercial</span>
+          </div>
+        </div>
+
+        <!-- Operador Autenticado (somente em memória) -->
+        <div class="operator-box" id="operator-box">
+          <div class="operator-info">
+            <div class="operator-name" id="operator-name">Visitante (Somente leitura)</div>
+            <div class="operator-role" id="operator-role">Faça login para gravar dados</div>
+          </div>
+          <div class="operator-actions">
+            <button type="button" class="btn-primary btn-sm" id="open-login-btn" style="width: 100%; justify-content: center;">
+              Identificar Operador
+            </button>
+            <button type="button" class="btn-secondary btn-sm hidden" id="logout-btn" style="width: 100%; justify-content: center;">
+              Sair da Sessão
+            </button>
           </div>
         </div>
 
         <nav class="sidebar-nav">
-          <div class="nav-section-title">Categorias</div>
-          <ul class="category-list" id="categories-container">
-            <!-- Populated dynamically via JS -->
+          <div class="nav-section-title">Operação</div>
+          <ul class="nav-list">
             <li>
-              <button class="category-item active" data-category-id="">
-                <span>Todas as Categorias</span>
-                <span class="category-count" id="total-count-badge">0</span>
+              <button type="button" class="nav-item active" data-view="produtos">
+                <span>Produtos</span>
+                <span class="nav-count" id="nav-count-produtos">0</span>
+              </button>
+            </li>
+            <li>
+              <button type="button" class="nav-item" data-view="vendas">
+                <span>Vendas (PDV)</span>
+              </button>
+            </li>
+            <li>
+              <button type="button" class="nav-item" data-view="caixa">
+                <span>Caixa</span>
+                <span class="nav-status-dot closed" id="nav-caixa-dot" title="Status do caixa"></span>
+              </button>
+            </li>
+            <li>
+              <button type="button" class="nav-item" data-view="compras">
+                <span>Compras</span>
+              </button>
+            </li>
+          </ul>
+
+          <div class="nav-section-title" style="margin-top: 18px;">Cadastros &amp; Auditoria</div>
+          <ul class="nav-list">
+            <li>
+              <button type="button" class="nav-item" data-view="clientes">
+                <span>Clientes</span>
+                <span class="nav-count" id="nav-count-clientes">0</span>
+              </button>
+            </li>
+            <li>
+              <button type="button" class="nav-item" data-view="fornecedores">
+                <span>Fornecedores</span>
+                <span class="nav-count" id="nav-count-fornecedores">0</span>
+              </button>
+            </li>
+            <li>
+              <button type="button" class="nav-item" data-view="funcionarios">
+                <span>Funcionários</span>
+                <span class="nav-count" id="nav-count-funcionarios">0</span>
+              </button>
+            </li>
+            <li>
+              <button type="button" class="nav-item" data-view="historico">
+                <span>Histórico</span>
               </button>
             </li>
           </ul>
@@ -71,91 +128,755 @@
             <span class="status-dot"></span>
             <span>API Conectada</span>
           </div>
-          <span style="color: var(--text-muted); font-size: 11px;">v1.0</span>
+          <span style="color: var(--text-muted); font-size: 11px;">v2.0</span>
         </div>
       </aside>
 
-      <!-- Main Area (Produtos) -->
+      <!-- Main Area -->
       <main class="main-content">
-        <!-- Action Bar -->
-        <div class="action-bar">
-          <div class="action-bar-left">
-            <h1 id="current-category-title">Todos os Produtos</h1>
-            <p id="products-count-label">Carregando catálogo...</p>
+        <!-- ==================== VIEW: PRODUTOS ==================== -->
+        <section class="view-section active" id="view-produtos">
+          <div class="action-bar">
+            <div class="action-bar-left">
+              <h1 id="current-category-title">Todos os Produtos</h1>
+              <p id="products-count-label">Carregando catálogo...</p>
+            </div>
+            <div class="action-bar-right">
+              <div class="search-box">
+                <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" id="search-input" class="search-input" placeholder="Buscar produto ou categoria..." />
+              </div>
+              <button type="button" class="btn-secondary" id="open-reactivate-product-btn" title="Reativar um produto desativado informando o ID">
+                Reativar por ID
+              </button>
+              <button type="button" class="btn-primary" id="open-product-modal-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                <span>Novo Produto</span>
+              </button>
+            </div>
           </div>
 
-          <div class="action-bar-right">
-            <div class="search-box">
-              <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-              </svg>
-              <input type="text" id="search-input" class="search-input" placeholder="Buscar por nome..." />
+          <div class="category-pills" id="categories-container"></div>
+
+          <div class="products-grid" id="products-grid"></div>
+        </section>
+
+        <!-- ==================== VIEW: VENDAS ==================== -->
+        <section class="view-section" id="view-vendas">
+          <div class="action-bar">
+            <div class="action-bar-left">
+              <h1>Registrar Venda (PDV)</h1>
+              <p>Selecione itens ativos com estoque e informe uma ou mais formas de pagamento.</p>
+            </div>
+            <div class="action-bar-right">
+              <span class="status-badge" id="venda-caixa-badge">Verificando caixa...</span>
+              <button type="button" class="btn-secondary" id="venda-clear-btn">Limpar Venda</button>
+            </div>
+          </div>
+
+          <div class="alert-banner warning hidden" id="venda-caixa-warning">
+            <strong>Caixa fechado:</strong> Vendas com pagamento em <strong>DINHEIRO</strong> exigem caixa aberto. Pagamentos 100% em PIX ou Cartão funcionam normalmente mesmo com o caixa fechado.
+          </div>
+
+          <div class="two-col-layout">
+            <!-- Esquerda: Cliente e Itens -->
+            <div class="panel-card">
+              <div class="panel-header">
+                <h2>1. Cliente e Produtos</h2>
+              </div>
+              <div class="panel-body">
+                <div class="form-group">
+                  <label class="form-label" for="venda-cliente">Cliente (opcional — somente ativos)</label>
+                  <select id="venda-cliente" class="form-select">
+                    <option value="">Cliente não identificado (Balcão)</option>
+                  </select>
+                </div>
+
+                <div class="inline-adder">
+                  <div class="form-group" style="flex: 2; margin-bottom: 0;">
+                    <label class="form-label" for="venda-produto">Produto</label>
+                    <select id="venda-produto" class="form-select">
+                      <option value="">Selecione um produto...</option>
+                    </select>
+                  </div>
+                  <div class="form-group" style="flex: 0.7; margin-bottom: 0;">
+                    <label class="form-label" for="venda-qtd">Qtd.</label>
+                    <input type="number" id="venda-qtd" class="form-input" min="1" step="1" value="1" />
+                  </div>
+                  <button type="button" class="btn-primary" id="venda-add-item-btn" style="align-self: flex-end;">
+                    + Adicionar
+                  </button>
+                </div>
+
+                <div class="table-wrapper" style="margin-top: 18px;">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>Produto</th>
+                        <th>Unitário</th>
+                        <th>Qtd.</th>
+                        <th>Subtotal</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody id="venda-itens-tbody">
+                      <tr><td colspan="5" class="table-empty">Nenhum item adicionado à venda.</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
 
-            <button class="btn-primary" id="open-modal-btn">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-              <span>Cadastrar Novo Produto</span>
-            </button>
-          </div>
-        </div>
+            <!-- Direita: Pagamentos e Resumo -->
+            <div class="panel-card">
+              <div class="panel-header">
+                <h2>2. Pagamentos &amp; Finalização</h2>
+              </div>
+              <div class="panel-body">
+                <div class="summary-kpis">
+                  <div class="kpi-box">
+                    <span class="kpi-label">Total da Venda</span>
+                    <strong class="kpi-value" id="venda-total-display">R$ 0,00</strong>
+                  </div>
+                  <div class="kpi-box">
+                    <span class="kpi-label">Total Pago</span>
+                    <strong class="kpi-value" id="venda-pago-display">R$ 0,00</strong>
+                  </div>
+                  <div class="kpi-box">
+                    <span class="kpi-label">Diferença / Falta</span>
+                    <strong class="kpi-value" id="venda-falta-display">R$ 0,00</strong>
+                  </div>
+                </div>
 
-        <!-- Products Grid Container -->
-        <div class="products-grid" id="products-grid">
-          <!-- Rendered dynamically via JS -->
-        </div>
+                <div class="inline-adder" style="margin-top: 16px;">
+                  <div class="form-group" style="flex: 1.4; margin-bottom: 0;">
+                    <label class="form-label" for="venda-forma-pagamento">Forma de Pagamento</label>
+                    <select id="venda-forma-pagamento" class="form-select">
+                      <option value="PIX">PIX</option>
+                      <option value="DINHEIRO">DINHEIRO</option>
+                      <option value="CARTAO_DEBITO">CARTÃO DÉBITO</option>
+                      <option value="CARTAO_CREDITO">CARTÃO CRÉDITO</option>
+                    </select>
+                  </div>
+                  <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                    <label class="form-label" for="venda-valor-pagamento">Valor (R$)</label>
+                    <input type="number" id="venda-valor-pagamento" class="form-input" step="0.01" min="0.01" placeholder="0,00" />
+                  </div>
+                  <button type="button" class="btn-secondary" id="venda-fill-rest-btn" style="align-self: flex-end;" title="Preencher valor restante">
+                    Restante
+                  </button>
+                  <button type="button" class="btn-primary" id="venda-add-pag-btn" style="align-self: flex-end;">
+                    + Pag.
+                  </button>
+                </div>
+
+                <div class="table-wrapper" style="margin-top: 14px;">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>Forma</th>
+                        <th>Valor</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody id="venda-pagamentos-tbody">
+                      <tr><td colspan="3" class="table-empty">Nenhum pagamento informado.</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div style="margin-top: 20px;">
+                  <button type="button" class="btn-primary" id="venda-submit-btn" style="width: 100%; justify-content: center; padding: 13px;">
+                    Finalizar Venda
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW: CAIXA ==================== -->
+        <section class="view-section" id="view-caixa">
+          <div class="action-bar">
+            <div class="action-bar-left">
+              <h1>Controle de Caixa</h1>
+              <p>Abertura, entradas manuais, retiradas e conferência de fechamento (exclusivo Proprietária).</p>
+            </div>
+            <div class="action-bar-right">
+              <button type="button" class="btn-secondary" id="caixa-refresh-btn">Atualizar Caixa</button>
+            </div>
+          </div>
+
+          <div id="caixa-fechamento-resultado" class="alert-banner info hidden"></div>
+
+          <!-- Estado do Caixa -->
+          <div class="kpi-grid" id="caixa-kpi-grid">
+            <div class="kpi-card">
+              <span class="kpi-label">Status Atual</span>
+              <strong class="kpi-value" id="caixa-status-text">Verificando...</strong>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Valor de Abertura</span>
+              <strong class="kpi-value" id="caixa-abertura-val">R$ 0,00</strong>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Saldo Estimado em Dinheiro</span>
+              <strong class="kpi-value" id="caixa-saldo-val">R$ 0,00</strong>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Aberto em</span>
+              <strong class="kpi-value" style="font-size: 16px;" id="caixa-data-abertura">—</strong>
+            </div>
+          </div>
+
+          <!-- Painel: Abrir Caixa (quando fechado) -->
+          <div class="panel-card hidden" id="caixa-open-panel" style="margin-top: 20px; max-width: 520px;">
+            <div class="panel-header">
+              <h2>Abrir Caixa</h2>
+            </div>
+            <form id="caixa-abrir-form" class="panel-body">
+              <div class="form-group">
+                <label class="form-label" for="caixa-valor-abertura">Valor inicial em caixa (R$)</label>
+                <input type="number" id="caixa-valor-abertura" class="form-input" step="0.01" min="0" value="0.00" required />
+              </div>
+              <button type="submit" class="btn-primary" id="caixa-abrir-btn">Abrir Caixa</button>
+            </form>
+          </div>
+
+          <!-- Painel: Operações do Caixa Aberto -->
+          <div class="hidden" id="caixa-active-panels" style="margin-top: 20px;">
+            <div class="three-col-grid">
+              <!-- Entrada Manual -->
+              <div class="panel-card">
+                <div class="panel-header"><h2>Entrada Manual</h2></div>
+                <form id="caixa-entrada-form" class="panel-body">
+                  <div class="form-group">
+                    <label class="form-label" for="caixa-entrada-valor">Valor (R$)</label>
+                    <input type="number" id="caixa-entrada-valor" class="form-input" step="0.01" min="0.01" placeholder="0,00" required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="caixa-entrada-desc">Descrição</label>
+                    <input type="text" id="caixa-entrada-desc" class="form-input" maxlength="255" placeholder="Ex: Troco adicional" required />
+                  </div>
+                  <button type="submit" class="btn-primary" id="caixa-entrada-btn" style="width: 100%; justify-content: center;">Registrar Entrada</button>
+                </form>
+              </div>
+
+              <!-- Retirada -->
+              <div class="panel-card">
+                <div class="panel-header"><h2>Retirada / Sangria</h2></div>
+                <form id="caixa-retirada-form" class="panel-body">
+                  <div class="form-group">
+                    <label class="form-label" for="caixa-retirada-valor">Valor (R$)</label>
+                    <input type="number" id="caixa-retirada-valor" class="form-input" step="0.01" min="0.01" placeholder="0,00" required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="caixa-retirada-desc">Descrição</label>
+                    <input type="text" id="caixa-retirada-desc" class="form-input" maxlength="255" placeholder="Ex: Pagamento de fornecedor" required />
+                  </div>
+                  <button type="submit" class="btn-danger" id="caixa-retirada-btn" style="width: 100%; justify-content: center;">Registrar Retirada</button>
+                </form>
+              </div>
+
+              <!-- Fechar Caixa -->
+              <div class="panel-card">
+                <div class="panel-header"><h2>Fechar Caixa</h2></div>
+                <form id="caixa-fechar-form" class="panel-body">
+                  <div class="form-group">
+                    <label class="form-label" for="caixa-fechar-valor">Valor conferido em dinheiro (R$)</label>
+                    <input type="number" id="caixa-fechar-valor" class="form-input" step="0.01" min="0" placeholder="0,00" required />
+                  </div>
+                  <p class="field-hint" style="margin-bottom: 14px;">O servidor compara o valor informado com o esperado e retorna se houve conferência, sobra ou falta.</p>
+                  <button type="submit" class="btn-dark" id="caixa-fechar-btn" style="width: 100%; justify-content: center;">Encerrar e Conferir Caixa</button>
+                </form>
+              </div>
+            </div>
+
+            <!-- Movimentações -->
+            <div class="panel-card" style="margin-top: 20px;">
+              <div class="panel-header">
+                <h2>Movimentações do Caixa Aberto</h2>
+              </div>
+              <div class="table-wrapper">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Data / Hora</th>
+                      <th>Tipo</th>
+                      <th>Categoria</th>
+                      <th>Descrição</th>
+                      <th>Valor</th>
+                    </tr>
+                  </thead>
+                  <tbody id="caixa-mov-tbody">
+                    <tr><td colspan="5" class="table-empty">Nenhuma movimentação registrada.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW: COMPRAS ==================== -->
+        <section class="view-section" id="view-compras">
+          <div class="action-bar">
+            <div class="action-bar-left">
+              <h1>Registrar Compra de Estoque</h1>
+              <p>Reposição de mercadoria por fornecedor ativo (exclusivo Proprietária).</p>
+            </div>
+            <div class="action-bar-right">
+              <button type="button" class="btn-secondary" id="compra-clear-btn">Limpar Compra</button>
+            </div>
+          </div>
+
+          <div class="alert-banner info">
+            <strong>Regra de negócio:</strong> Compras aumentam o estoque atual dos produtos, não alteram o preço de venda cadastrado e não geram movimentação no caixa.
+          </div>
+
+          <div class="panel-card">
+            <div class="panel-header">
+              <h2>Dados da Compra</h2>
+            </div>
+            <div class="panel-body">
+              <div class="form-group" style="max-width: 480px;">
+                <label class="form-label" for="compra-fornecedor">Fornecedor (obrigatório — somente ativos)</label>
+                <select id="compra-fornecedor" class="form-select">
+                  <option value="">Selecione um fornecedor...</option>
+                </select>
+              </div>
+
+              <div class="inline-adder" style="margin-top: 16px;">
+                <div class="form-group" style="flex: 2; margin-bottom: 0;">
+                  <label class="form-label" for="compra-produto">Produto</label>
+                  <select id="compra-produto" class="form-select">
+                    <option value="">Selecione um produto...</option>
+                  </select>
+                </div>
+                <div class="form-group" style="flex: 0.7; margin-bottom: 0;">
+                  <label class="form-label" for="compra-qtd">Qtd.</label>
+                  <input type="number" id="compra-qtd" class="form-input" min="1" step="1" value="1" />
+                </div>
+                <div class="form-group" style="flex: 0.9; margin-bottom: 0;">
+                  <label class="form-label" for="compra-custo">Custo Unit. (R$)</label>
+                  <input type="number" id="compra-custo" class="form-input" min="0" step="0.01" placeholder="0,00" />
+                </div>
+                <button type="button" class="btn-primary" id="compra-add-item-btn" style="align-self: flex-end;">
+                  + Adicionar Item
+                </button>
+              </div>
+
+              <div class="table-wrapper" style="margin-top: 18px;">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Produto</th>
+                      <th>Quantidade</th>
+                      <th>Custo Unitário</th>
+                      <th>Subtotal</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="compra-itens-tbody">
+                    <tr><td colspan="5" class="table-empty">Nenhum item adicionado à compra.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="compra-footer-bar">
+                <div>
+                  <span class="kpi-label">Valor Total da Compra</span>
+                  <strong class="kpi-value" id="compra-total-display" style="display: block;">R$ 0,00</strong>
+                </div>
+                <button type="button" class="btn-primary" id="compra-submit-btn">
+                  Confirmar Compra e Atualizar Estoque
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW: CLIENTES ==================== -->
+        <section class="view-section" id="view-clientes">
+          <div class="action-bar">
+            <div class="action-bar-left">
+              <h1>Clientes</h1>
+              <p id="clientes-count-label">Carregando clientes...</p>
+            </div>
+            <div class="action-bar-right">
+              <div class="search-box">
+                <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" id="clientes-search" class="search-input" placeholder="Buscar por nome ou CPF..." />
+              </div>
+              <button type="button" class="btn-primary" id="open-cliente-modal-btn">+ Novo Cliente</button>
+            </div>
+          </div>
+
+          <div class="panel-card">
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>CPF</th>
+                    <th>Telefone</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="clientes-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW: FORNECEDORES ==================== -->
+        <section class="view-section" id="view-fornecedores">
+          <div class="action-bar">
+            <div class="action-bar-left">
+              <h1>Fornecedores</h1>
+              <p id="fornecedores-count-label">Carregando fornecedores...</p>
+            </div>
+            <div class="action-bar-right">
+              <div class="search-box">
+                <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" id="fornecedores-search" class="search-input" placeholder="Buscar razão social ou CNPJ..." />
+              </div>
+              <button type="button" class="btn-primary" id="open-fornecedor-modal-btn">+ Novo Fornecedor</button>
+            </div>
+          </div>
+
+          <div class="panel-card">
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Razão Social / Fantasia</th>
+                    <th>CNPJ</th>
+                    <th>Contato</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="fornecedores-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW: FUNCIONÁRIOS ==================== -->
+        <section class="view-section" id="view-funcionarios">
+          <div class="action-bar">
+            <div class="action-bar-left">
+              <h1>Funcionários</h1>
+              <p id="funcionarios-count-label">Carregando funcionários...</p>
+            </div>
+            <div class="action-bar-right">
+              <button type="button" class="btn-primary" id="open-funcionario-modal-btn">+ Novo Funcionário</button>
+            </div>
+          </div>
+
+          <div class="panel-card">
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Login</th>
+                    <th>Perfil</th>
+                    <th>CPF / Telefone</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="funcionarios-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW: HISTÓRICO ==================== -->
+        <section class="view-section" id="view-historico">
+          <div class="action-bar">
+            <div class="action-bar-left">
+              <h1>Histórico &amp; Auditoria</h1>
+              <p>Consulte snapshots de inclusão (I) e alteração (A) registrados pela API (exclusivo Proprietária).</p>
+            </div>
+          </div>
+
+          <div class="panel-card">
+            <div class="panel-body">
+              <div class="inline-adder">
+                <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                  <label class="form-label" for="hist-tipo">Entidade</label>
+                  <select id="hist-tipo" class="form-select">
+                    <option value="produtos">Produto</option>
+                    <option value="clientes">Cliente</option>
+                    <option value="fornecedores">Fornecedor</option>
+                    <option value="funcionarios">Funcionário</option>
+                  </select>
+                </div>
+                <div class="form-group" style="flex: 1.5; margin-bottom: 0;">
+                  <label class="form-label" for="hist-registro">Registro</label>
+                  <select id="hist-registro" class="form-select">
+                    <option value="">Selecione...</option>
+                  </select>
+                </div>
+                <div class="form-group" style="flex: 0.7; margin-bottom: 0;">
+                  <label class="form-label" for="hist-id-manual">Ou ID direto</label>
+                  <input type="number" id="hist-id-manual" class="form-input" min="1" step="1" placeholder="ID" />
+                </div>
+                <button type="button" class="btn-primary" id="hist-consultar-btn" style="align-self: flex-end;">
+                  Consultar Histórico
+                </button>
+              </div>
+
+              <div id="hist-resultado" style="margin-top: 22px;">
+                <div class="empty-state" style="padding: 36px 20px;">
+                  <div class="empty-state-title">Selecione um registro</div>
+                  <div class="empty-state-text" style="margin-bottom: 0;">Escolha a entidade e o registro acima (ou clique em "Histórico" em qualquer tabela) para visualizar a linha do tempo de alterações.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
     </div>
 
-    <!-- Modal de Cadastro de Produto -->
+    <!-- ==================== MODAL: LOGIN OPERADOR ==================== -->
+    <div class="modal-backdrop" id="login-modal">
+      <div class="modal-card" style="max-width: 430px;">
+        <div class="modal-header">
+          <h2 class="modal-title">Identificação do Operador</h2>
+          <button type="button" class="modal-close-btn" data-close-modal="login-modal" aria-label="Fechar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+        <form id="login-form">
+          <div class="modal-body">
+            <p class="field-hint" style="margin-bottom: 16px;">
+              As credenciais ficam armazenadas <strong>apenas em memória</strong> durante esta visita e são enviadas no corpo JSON das operações protegidas.
+            </p>
+            <div class="form-group">
+              <label class="form-label" for="login-usuario">Login do Funcionário</label>
+              <input type="text" id="login-usuario" class="form-input" placeholder="Ex: mariana ou lucas" autocomplete="username" required />
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" for="login-senha">Senha</label>
+              <input type="password" id="login-senha" class="form-input" placeholder="Digite a senha" autocomplete="current-password" required />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" data-close-modal="login-modal">Cancelar</button>
+            <button type="submit" class="btn-primary" id="login-submit-btn">Entrar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ==================== MODAL: PRODUTO ==================== -->
     <div class="modal-backdrop" id="product-modal">
       <div class="modal-card">
         <div class="modal-header">
           <h2 class="modal-title">Cadastrar Novo Produto</h2>
-          <button class="modal-close-btn" id="close-modal-btn" aria-label="Fechar janela">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
+          <button type="button" class="modal-close-btn" data-close-modal="product-modal" aria-label="Fechar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
         </div>
-
         <form id="product-form">
           <div class="modal-body">
             <div class="form-group">
-              <label class="form-label" for="product-name">Nome do Produto</label>
-              <input type="text" id="product-name" class="form-input" placeholder="Ex: Vestido Floral Infantil" required />
+              <label class="form-label" for="product-name">Nome do Produto *</label>
+              <input type="text" id="product-name" class="form-input" maxlength="150" placeholder="Ex: Vestido Floral Infantil" required />
             </div>
-
             <div class="form-group">
-              <label class="form-label" for="product-category">Categoria</label>
+              <label class="form-label" for="product-category">Categoria *</label>
               <select id="product-category" class="form-select" required>
                 <option value="" disabled selected>Selecione uma categoria...</option>
-                <!-- Populated dynamically via JS -->
               </select>
             </div>
-
             <div class="form-row">
-              <div class="form-group">
-                <label class="form-label" for="product-price">Preço (R$)</label>
-                <input type="number" id="product-price" class="form-input" step="0.01" min="0.01" placeholder="0,00" required />
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" for="product-price">Preço de Venda (R$) *</label>
+                <input type="number" id="product-price" class="form-input" step="0.01" min="0" placeholder="0,00" required />
               </div>
-
-              <div class="form-group">
-                <label class="form-label" for="product-quantity">Quantidade Inicial</label>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" for="product-quantity">Quantidade Inicial *</label>
                 <input type="number" id="product-quantity" class="form-input" step="1" min="0" value="0" required />
               </div>
             </div>
           </div>
-
           <div class="modal-footer">
-            <button type="button" class="btn-secondary" id="cancel-modal-btn">Cancelar</button>
-            <button type="submit" class="btn-primary" id="save-product-btn">
-              <span>Cadastrar Produto</span>
-            </button>
+            <button type="button" class="btn-secondary" data-close-modal="product-modal">Cancelar</button>
+            <button type="submit" class="btn-primary" id="save-product-btn">Cadastrar Produto</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ==================== MODAL: REATIVAR PRODUTO POR ID ==================== -->
+    <div class="modal-backdrop" id="reactivate-product-modal">
+      <div class="modal-card" style="max-width: 420px;">
+        <div class="modal-header">
+          <h2 class="modal-title">Reativar Produto</h2>
+          <button type="button" class="modal-close-btn" data-close-modal="reactivate-product-modal" aria-label="Fechar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+        <form id="reactivate-product-form">
+          <div class="modal-body">
+            <p class="field-hint" style="margin-bottom: 14px;">Informe o ID do produto desativado para reativá-lo no catálogo (exclusivo Proprietária).</p>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" for="reactivate-product-id">ID do Produto *</label>
+              <input type="number" id="reactivate-product-id" class="form-input" min="1" step="1" placeholder="Ex: 5" required />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" data-close-modal="reactivate-product-modal">Cancelar</button>
+            <button type="submit" class="btn-primary" id="reactivate-product-submit-btn">Reativar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ==================== MODAL: CLIENTE ==================== -->
+    <div class="modal-backdrop" id="cliente-modal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2 class="modal-title" id="cliente-modal-title">Novo Cliente</h2>
+          <button type="button" class="modal-close-btn" data-close-modal="cliente-modal" aria-label="Fechar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+        <form id="cliente-form">
+          <input type="hidden" id="cliente-id" />
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label" for="cliente-nome">Nome Completo *</label>
+              <input type="text" id="cliente-nome" class="form-input" maxlength="120" placeholder="Ex: Joana Silva" required />
+            </div>
+            <div class="form-row">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" for="cliente-cpf">CPF (opcional)</label>
+                <input type="text" id="cliente-cpf" class="form-input" maxlength="14" placeholder="000.000.000-00" inputmode="numeric" />
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" for="cliente-telefone">Telefone com DDD (opcional)</label>
+                <input type="text" id="cliente-telefone" class="form-input" maxlength="15" placeholder="(61) 99999-9999" inputmode="numeric" />
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" data-close-modal="cliente-modal">Cancelar</button>
+            <button type="submit" class="btn-primary" id="save-cliente-btn">Salvar Cliente</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ==================== MODAL: FORNECEDOR ==================== -->
+    <div class="modal-backdrop" id="fornecedor-modal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2 class="modal-title" id="fornecedor-modal-title">Novo Fornecedor</h2>
+          <button type="button" class="modal-close-btn" data-close-modal="fornecedor-modal" aria-label="Fechar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+        <form id="fornecedor-form">
+          <input type="hidden" id="fornecedor-id" />
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label" for="fornecedor-razao">Razão Social *</label>
+              <input type="text" id="fornecedor-razao" class="form-input" maxlength="150" placeholder="Ex: Confecções Exemplo Ltda" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="fornecedor-fantasia">Nome Fantasia (opcional)</label>
+              <input type="text" id="fornecedor-fantasia" class="form-input" maxlength="150" placeholder="Ex: Confecções Exemplo" />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="fornecedor-cnpj">CNPJ (opcional)</label>
+                <input type="text" id="fornecedor-cnpj" class="form-input" maxlength="18" placeholder="00.000.000/0000-00" inputmode="numeric" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="fornecedor-telefone">Telefone (opcional)</label>
+                <input type="text" id="fornecedor-telefone" class="form-input" maxlength="15" placeholder="(61) 3333-4444" inputmode="numeric" />
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" for="fornecedor-email">E-mail (opcional)</label>
+              <input type="email" id="fornecedor-email" class="form-input" maxlength="120" placeholder="contato@fornecedor.com.br" />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" data-close-modal="fornecedor-modal">Cancelar</button>
+            <button type="submit" class="btn-primary" id="save-fornecedor-btn">Salvar Fornecedor</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ==================== MODAL: FUNCIONÁRIO ==================== -->
+    <div class="modal-backdrop" id="funcionario-modal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2 class="modal-title">Novo Funcionário</h2>
+          <button type="button" class="modal-close-btn" data-close-modal="funcionario-modal" aria-label="Fechar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+        <form id="funcionario-form">
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label" for="func-nome">Nome Completo *</label>
+              <input type="text" id="func-nome" class="form-input" maxlength="120" placeholder="Ex: Paula Santos" required />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="func-cpf">CPF (opcional)</label>
+                <input type="text" id="func-cpf" class="form-input" maxlength="14" placeholder="000.000.000-00" inputmode="numeric" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="func-telefone">Telefone (opcional)</label>
+                <input type="text" id="func-telefone" class="form-input" maxlength="15" placeholder="(61) 99999-8888" inputmode="numeric" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="func-login">Login de Acesso *</label>
+                <input type="text" id="func-login" class="form-input" maxlength="50" placeholder="Ex: paula" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="func-perfil">Perfil *</label>
+                <select id="func-perfil" class="form-select" required>
+                  <option value="VENDEDOR">VENDEDOR</option>
+                  <option value="PROPRIETARIA">PROPRIETARIA</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" for="func-senha">Senha do Novo Funcionário *</label>
+              <input type="password" id="func-senha" class="form-input" placeholder="Defina uma senha" required />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" data-close-modal="funcionario-modal">Cancelar</button>
+            <button type="submit" class="btn-primary" id="save-funcionario-btn">Cadastrar Funcionário</button>
           </div>
         </form>
       </div>
@@ -165,5 +886,4 @@
     <div id="toast-container"></div>
     <script src="script.js"></script>
   </body>
-</html>
-
+</html
