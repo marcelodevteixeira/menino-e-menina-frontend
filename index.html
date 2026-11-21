@@ -13,14 +13,128 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <!-- Cold Start Loading Screen -->
-    <div id="cold-start-overlay">
-      <div class="spinner"></div>
-      <div class="cold-start-brand">Menino E Menina</div>
-      <div class="cold-start-message">Conectando ao servidor. Isso pode levar até um minuto...</div>
-      <div class="cold-start-subtext">
-        <span>Servidor em inicialização (Render)</span>
-        <span class="cold-start-timer" id="cold-start-elapsed">0s</span>
+    <!-- Cold Start & Avaliação Splash Screen -->
+    <div id="cold-start-overlay" role="dialog" aria-modal="true" aria-labelledby="splash-title">
+      <div class="splash-card">
+        <div class="splash-top">
+          <div class="splash-brand-row">
+            <div>
+              <span class="brand-badge">Ambiente de Homologação</span>
+              <h1 class="splash-title" id="splash-title">Obrigado por testar o sistema Menino E Menina</h1>
+            </div>
+            <div class="splash-status-box" id="splash-status-box">
+              <div class="spinner splash-spinner" id="splash-spinner"></div>
+              <div>
+                <div class="splash-status-label" id="cold-start-status-text">Conectando ao servidor...</div>
+                <div class="cold-start-subtext">
+                  <span>Tempo decorrido:</span>
+                  <span class="cold-start-timer" id="cold-start-elapsed">0s</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p class="splash-intro">
+            O sistema pode levar cerca de um minuto para iniciar na primeira utilização. Por favor, aguarde o carregamento.
+          </p>
+
+          <div class="splash-progress-wrap" aria-label="Progresso de inicialização">
+            <div class="splash-progress-track">
+              <div class="splash-progress-bar" id="splash-progress-bar"></div>
+            </div>
+            <div class="splash-progress-meta">
+              <span id="splash-progress-hint">Inicializando servidor (Render)...</span>
+              <span id="splash-progress-pct">5%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="splash-body">
+          <div class="splash-section">
+            <h2 class="splash-section-title">Utilize os usuários abaixo para testar as funcionalidades nos diferentes perfis de acesso:</h2>
+            <div class="splash-users-grid">
+              <div class="splash-user-card">
+                <div class="splash-user-head">
+                  <span class="status-badge role-prop">Proprietária</span>
+                </div>
+                <div class="splash-user-info">
+                  <div><strong>Usuário:</strong> <code>sandra</code></div>
+                  <div><strong>Senha:</strong> <code>123456</code></div>
+                  <div><strong>Perfil:</strong> Proprietária</div>
+                </div>
+              </div>
+              <div class="splash-user-card">
+                <div class="splash-user-head">
+                  <span class="status-badge role-vend">Vendedora</span>
+                </div>
+                <div class="splash-user-info">
+                  <div><strong>Usuário:</strong> <code>judite</code></div>
+                  <div><strong>Senha:</strong> <code>123456</code></div>
+                  <div><strong>Perfil:</strong> Vendedora</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="splash-section">
+            <h2 class="splash-section-title">Principais funcionalidades para avaliação:</h2>
+            <div class="splash-roles-grid">
+              <div class="splash-role-box">
+                <h3>Acesso livre</h3>
+                <ul>
+                  <li>Consulta de todos os cadastros.</li>
+                </ul>
+              </div>
+              <div class="splash-role-box">
+                <h3>Acesso Vendedor</h3>
+                <ul>
+                  <li>Cadastro e alteração de clientes;</li>
+                  <li>Consulta e alteração de dados de produtos;</li>
+                  <li>Alteração dos próprios dados de funcionário;</li>
+                  <li>Registro de vendas.</li>
+                </ul>
+              </div>
+              <div class="splash-role-box splash-role-span">
+                <h3>Acesso Proprietária</h3>
+                <ul class="splash-two-col-list">
+                  <li>Todas as funcionalidades do perfil Vendedor;</li>
+                  <li>Alteração de estoque de produtos;</li>
+                  <li>Cadastro, alteração e desativação de funcionários;</li>
+                  <li>Cadastro, alteração e desativação de fornecedores;</li>
+                  <li>Registro de compras;</li>
+                  <li>Abertura, movimentações e fechamento de caixa;</li>
+                  <li>Consulta ao histórico de alterações.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="alert-banner info" style="margin-bottom: 14px;">
+            <strong>Atenção durante os testes:</strong> Caso alguma operação não seja concluída imediatamente, aguarde o carregamento da página e tente novamente. Evite enviar repetidamente o mesmo formulário, pois isso pode registrar mais de uma operação.
+          </div>
+
+          <div class="splash-form-box">
+            <div>
+              <strong>Depois de concluir os testes, preencha o formulário de avaliação:</strong>
+              <div class="field-hint">Sua resposta ajuda a validar a entrega do sistema Menino E Menina.</div>
+            </div>
+            <a
+              href="https://docs.google.com/forms/d/e/1FAIpQLSdIhhWxsR2vaxnDGxjbE6_7DIIZufZhq3t-2PuhG024XwccbQ/viewform?usp=header"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn-secondary"
+            >
+              Abrir Formulário de Avaliação ↗
+            </a>
+          </div>
+        </div>
+
+        <div class="splash-footer">
+          <span class="field-hint" id="splash-footer-note">Aguardando resposta do servidor para liberar o acesso...</span>
+          <button type="button" class="btn-primary" id="splash-enter-btn" disabled>
+            Aguardando servidor...
+          </button>
+        </div>
       </div>
     </div>
 
@@ -128,6 +242,11 @@
           </ul>
         </nav>
 
+        <div style="padding: 10px 14px; border-top: 1px solid var(--border-color);">
+          <button type="button" class="btn-secondary btn-sm" id="open-splash-guide-btn" style="width: 100%; justify-content: center;">
+            Guia de Testes &amp; Formulário
+          </button>
+        </div>
         <div class="sidebar-footer">
           <div class="status-pill">
             <span class="status-dot"></span>
@@ -805,6 +924,10 @@
               <select id="product-category" class="form-select" required>
                 <option value="" disabled selected>Selecione uma categoria...</option>
               </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="product-barcode">Código de barras (opcional — somente dígitos)</label>
+              <input type="text" id="product-barcode" class="form-input" maxlength="50" inputmode="numeric" placeholder="Ex: 7891234567890" />
             </div>
             <div class="form-row">
               <div class="form-group" style="margin-bottom: 0;">
