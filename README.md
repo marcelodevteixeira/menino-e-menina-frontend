@@ -1,52 +1,60 @@
-# Menino E Menina - Frontend (Módulo de Produtos)
+# Menino E Menina - Frontend (Sistema de Gestão Comercial)
 
-Este é o frontend da aplicação web "Menino E Menina", um sistema de gestão de catálogo e estoque de moda infantil, desenvolvido como parte do Projeto Integrador (Análise e Desenvolvimento de Sistemas - UniCEUB).
+Este é o frontend da aplicação web **Menino E Menina**, um sistema de gestão comercial, estoque, caixa, vendas e cadastros desenvolvido como parte do Projeto Integrador (**Análise e Desenvolvimento de Sistemas - UniCEUB**).
 
-Este repositório contém estritamente a **Interface de Usuário (UI)** e a **Lógica de Comunicação (Client-side)**, desenvolvidas em HTML, CSS e JavaScript puros (Single Page Application). O backend do sistema foi desenvolvido separadamente.
+O repositório contém a **Interface de Usuário (UI)** e a **Lógica Client-side**, construídas em HTML5, CSS3 e JavaScript puro (Single Page Application), integradas a uma API REST hospedada remotamente.
 
-## Objetivo do Projeto
+## Funcionalidades Implementadas
 
-Prover uma interface limpa, intuitiva e amigável para que a administração da loja possa:
-- Visualizar o catálogo completo de produtos em um formato de *dashboard*.
-- Navegar rapidamente pelas categorias de vestuário e brinquedos.
-- Monitorar a disponibilidade de estoque em tempo real com indicadores visuais de criticidade.
-- Cadastrar novos itens no sistema de forma dinâmica.
-- Realizar atualizações rápidas de quantidade no inventário.
+- **Dashboard Gerencial:** Indicadores de unidades em estoque, valor financeiro em estoque, saldo estimado do caixa aberto e vendas da sessão atual, acompanhados de gráficos interativos por produto, categoria e movimentação de caixa.
+- **Gestão de Produtos e Categorias:** Filtro por categoria e busca por nome, ID ou código de barras, cadastro de novos produtos (com campo opcional de código de barras somente em dígitos), atualização de estoque, ativação/desativação e acesso ao histórico.
+- **Vendas (PDV):** Busca rápida de produtos ativos com estoque por nome ou código de barras, montagem de carrinho, seleção opcional de cliente ativo e registro de pagamentos (incluindo pagamento misto via PIX, dinheiro, cartão de débito e cartão de crédito).
+- **Controle de Caixa:** Consulta de caixa aberto, abertura de caixa, registro de entradas manuais e retiradas/sangrias, fechamento com conferência de valores e listagem de movimentações.
+- **Compras:** Registro de reposição de estoque vinculada a fornecedor ativo, atualizando quantidades sem alterar preços de venda.
+- **Cadastros e Auditoria:** Gerenciamento de clientes, fornecedores e funcionários (com máscaras e validações de CPF, CNPJ, telefone e e-mail) e consulta de histórico (`I` — Inclusão e `A` — Alteração).
+- **Tela Inicial e Guia de Testes:** *Splash screen* com barra de progresso e cronômetro durante a inicialização do servidor, credenciais de homologação, escopo por perfil de acesso e link para o formulário de avaliação.
+
+## Autenticação e Controle de Acesso
+
+- As credenciais do operador ficam armazenadas **exclusivamente em memória** durante a sessão (nunca em `localStorage`) e são enviadas no corpo das operações protegidas.
+- As regras de permissão diferenciam os perfis **PROPRIETARIA** e **VENDEDOR** conforme as rotas da API.
 
 ## Tecnologias Utilizadas
 
-- **HTML5:** Estruturação semântica do layout.
-- **CSS3:** Estilização baseada em variáveis (Custom Properties), design responsivo (Mobile-first) e animações suaves, garantindo uma interface moderna e minimalista.
-- **JavaScript (Vanilla):** Lógica de negócios no frontend, manipulação do DOM e comunicação assíncrona com o servidor.
-- **API Fetch:** Integração HTTP com a API RESTful do backend.
+- **HTML5:** Estruturação semântica das views, modais e formulários.
+- **CSS3:** Estilização responsiva com variáveis CSS (*Custom Properties*), *layout* adaptável e estilos críticos embutidos para a tela inicial.
+- **JavaScript (Vanilla):** Gerenciamento de estado em memória, validações, máscaras, renderização de tabelas/gráficos e consumo da API.
+- **Fetch API:** Comunicação HTTP assíncrona em JSON com a API REST.
 
-## Integração e Arquitetura
+## Arquitetura e Integração
 
-O frontend atua de forma totalmente desacoplada, conectando-se a uma API REST hospedada remotamente. Não há dependência de ambientes locais como Node.js para execução da interface, facilitando o deploy via serviços de hospedagem estática.
+A aplicação funciona como um site estático desacoplado do backend, dispensando servidor Node.js local para rodar no navegador.
 
 ### Gerenciamento de "Cold Start" (Render)
-A API do projeto está hospedada no plano gratuito da plataforma Render. Para garantir uma excelente experiência do usuário e contornar a suspensão do servidor por inatividade ("Cold Start"), a interface implementa uma lógica de **Health Check**:
-Ao ser acessada, a aplicação exibe uma tela amigável de "Conectando ao servidor" e realiza requisições contínuas à rota `GET /api/health` do backend. O catálogo de produtos só é carregado e exibido após o servidor retornar um *status OK*, prevenindo erros de tela quebrada.
+Como a API está hospedada no plano gratuito da Render, a primeira requisição após um período de inatividade pode levar cerca de um minuto para responder (*Cold Start*). Na abertura, a interface exibe a tela de inicialização com barra de carregamento e consulta periódica a `GET /api/health` até o servidor ficar disponível.
 
-### Contrato da API Consumida
+### Endpoints Consumidos
 - **URL Base:** `https://menino-menina-api.onrender.com`
-- **Health Check:** `GET /api/health`
+- **Saúde:** `GET /api/health`
 - **Categorias:** `GET /api/categorias`
-- **Produtos:** `GET /api/produtos` | `POST /api/produtos` | `PATCH /api/produtos/{id}/quantidade`
-
-*Nota: O backend (Java, Quarkus, Banco H2) foi desenvolvido colaborativamente e o seu código fonte e documentação própria podem ser encontrados no repositório correspondente.*
+- **Produtos:** `GET /api/produtos` | `POST /api/produtos` | `PATCH /api/produtos/{id}/quantidade` | `PATCH /api/produtos/{id}/ativar` | `PATCH /api/produtos/{id}/desativar`
+- **Vendas:** `POST /api/vendas`
+- **Caixa:** `GET /api/caixa/aberto` | `GET /api/caixa/{id}/movimentacoes` | `POST /api/caixa/abrir` | `POST /api/caixa/entrada` | `POST /api/caixa/retirada` | `POST /api/caixa/fechar`
+- **Compras:** `POST /api/compras`
+- **Clientes:** `GET /api/clientes` | `POST /api/clientes` | `PUT /api/clientes/{id}` | `PATCH /api/clientes/{id}/ativar` | `PATCH /api/clientes/{id}/desativar`
+- **Fornecedores:** `GET /api/fornecedores` | `POST /api/fornecedores` | `PUT /api/fornecedores/{id}` | `PATCH /api/fornecedores/{id}/ativar` | `PATCH /api/fornecedores/{id}/desativar`
+- **Funcionários:** `GET /api/funcionarios` | `POST /api/funcionarios` | `PATCH /api/funcionarios/{id}/ativar` | `PATCH /api/funcionarios/{id}/desativar`
+- **Histórico:** `POST /api/historico/{tipo}/{id}`
 
 ## Como Executar
 
-Por ser uma aplicação web estática, a execução é imediata e não requer instalação de dependências.
-
-**Opção 1: Uso Local**
+### Uso Local
 1. Clone ou baixe este repositório.
-2. Abra o arquivo `index.html` em qualquer navegador web atual (Google Chrome, Firefox, Edge).
+2. Abra o arquivo `index.html` em um navegador web atualizado (ou sirva os arquivos estáticos via servidor local de sua preferência).
 
-**Opção 2: Versão Online (Hospedagem)**
-O projeto está hospedado diretamente na nuvem (Static Site no Render) e conectado à API pública.
-- **Acessar a Aplicação:** [https://loja-menino-e-menina.onrender.com]
+### Versão Online
+A aplicação é publicada como *Static Site* na Render conectada à API pública:
+- **Aplicação:** [https://loja-menino-e-menina.onrender.com](https://loja-menino-e-menina.onrender.com)
 
 ## Desenvolvedor
-- **Marcelo Teixeira** - Frontend e Integração da UI. Projeto Integrador (UniCEUB - 2026).
+- **Marcelo Teixeira** — Frontend e Integração da UI | Projeto Integrador (**UniCEUB** - 2026)
