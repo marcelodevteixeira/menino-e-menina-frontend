@@ -631,6 +631,12 @@ button:disabled {
   color: #065f46;
 }
 
+.alert-banner.error {
+  background-color: var(--danger-bg);
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
 /* Inline Adder */
 .inline-adder {
   display: flex;
