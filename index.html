@@ -661,13 +661,14 @@
     <div class="modal-backdrop" id="login-modal">
       <div class="modal-card" style="max-width: 430px;">
         <div class="modal-header">
-          <h2 class="modal-title">Identificação do Operador</h2>
+          <h2 class="modal-title" id="login-modal-title">Identificação do Operador</h2>
           <button type="button" class="modal-close-btn" data-close-modal="login-modal" aria-label="Fechar">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
         </div>
         <form id="login-form">
           <div class="modal-body">
+            <div id="login-modal-alert" class="alert-banner warning hidden" role="alert" style="margin-bottom: 14px;"></div>
             <p class="field-hint" style="margin-bottom: 16px;">
               As credenciais ficam armazenadas <strong>apenas em memória</strong> durante esta visita e são enviadas no corpo JSON das operações protegidas.
             </p>
@@ -886,4 +887,4 @@
     <div id="toast-container"></div>
     <script src="script.js"></script>
   </body>
-</html
+</html>
