@@ -72,7 +72,12 @@
           <div class="nav-section-title">Operação</div>
           <ul class="nav-list">
             <li>
-              <button type="button" class="nav-item active" data-view="produtos">
+              <button type="button" class="nav-item active" data-view="dashboard">
+                <span>Dashboard</span>
+              </button>
+            </li>
+            <li>
+              <button type="button" class="nav-item" data-view="produtos">
                 <span>Produtos</span>
                 <span class="nav-count" id="nav-count-produtos">0</span>
               </button>
@@ -134,8 +139,89 @@
 
       <!-- Main Area -->
       <main class="main-content">
+        <!-- ==================== VIEW: DASHBOARD ==================== -->
+        <section class="view-section active" id="view-dashboard">
+          <div class="action-bar">
+            <div class="action-bar-left">
+              <h1>Dashboard Gerencial</h1>
+              <p>Visão consolidada de estoque, caixa aberto e desempenho da sessão atual no PDV.</p>
+            </div>
+            <div class="action-bar-right">
+              <button type="button" class="btn-secondary" id="dashboard-refresh-btn">Atualizar Dados</button>
+            </div>
+          </div>
+
+          <div class="kpi-grid" style="margin-bottom: 22px;">
+            <div class="kpi-card">
+              <span class="kpi-label">Unidades em Estoque</span>
+              <strong class="kpi-value" id="dash-kpi-unidades">0 un.</strong>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Valor em Estoque</span>
+              <strong class="kpi-value" id="dash-kpi-estoque-valor">R$ 0,00</strong>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Saldo Estimado (Caixa)</span>
+              <strong class="kpi-value" id="dash-kpi-caixa-saldo">R$ 0,00</strong>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Vendas na Sessão</span>
+              <strong class="kpi-value" id="dash-kpi-sessao-vendas">0 (R$ 0,00)</strong>
+            </div>
+          </div>
+
+          <div class="dashboard-charts-grid">
+            <!-- Gráfico 1: Estoque atual por produto / categoria -->
+            <div class="panel-card">
+              <div class="panel-header dash-panel-header">
+                <div>
+                  <h2>Estoque Atual (Unidades Disponíveis)</h2>
+                  <p class="dash-subtitle" id="dash-estoque-sub">Distribuição de unidades por produto e categoria</p>
+                </div>
+                <div class="dash-mode-switch" role="group" aria-label="Agrupar estoque por">
+                  <button type="button" class="dash-mode-btn active" id="dash-estoque-mode-prod" data-mode="produto">Por Produto</button>
+                  <button type="button" class="dash-mode-btn" id="dash-estoque-mode-cat" data-mode="categoria">Por Categoria</button>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div id="dash-chart-estoque"></div>
+              </div>
+            </div>
+
+            <!-- Gráfico 2: Valor de caixa -->
+            <div class="panel-card">
+              <div class="panel-header dash-panel-header">
+                <div>
+                  <h2>Valor de Caixa</h2>
+                  <p class="dash-subtitle" id="dash-caixa-sub">Abertura, entradas, saídas e saldo estimado do caixa aberto</p>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div id="dash-chart-caixa"></div>
+              </div>
+            </div>
+
+            <!-- Gráfico 3: Valor financeiro em estoque por categoria + Top 3 produtos mais vendidos (sessão atual) -->
+            <div class="panel-card dashboard-span-full">
+              <div class="panel-header dash-panel-header">
+                <div>
+                  <h2 id="dash-terceiro-titulo">Valor Financeiro em Estoque por Categoria</h2>
+                  <p class="dash-subtitle" id="dash-terceiro-legenda">Capital estimado em estoque (preço × quantidade) agrupado por categoria</p>
+                </div>
+                <div class="dash-mode-switch" role="group" aria-label="Alternar terceiro gráfico">
+                  <button type="button" class="dash-mode-btn active" id="dash-terceiro-mode-valor" data-mode="valor-estoque">Valor em Estoque</button>
+                  <button type="button" class="dash-mode-btn" id="dash-terceiro-mode-top3" data-mode="top3-sessao">Top 3 Sessão Atual</button>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div id="dash-chart-terceiro"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- ==================== VIEW: PRODUTOS ==================== -->
-        <section class="view-section active" id="view-produtos">
+        <section class="view-section" id="view-produtos">
           <div class="action-bar">
             <div class="action-bar-left">
               <h1 id="current-category-title">Todos os Produtos</h1>
