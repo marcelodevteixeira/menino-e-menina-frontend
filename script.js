@@ -2,7 +2,7 @@
 const BASE_URL = window.API_URL || 'https://menino-menina-api.onrender.com';
 
 const state = {
-  currentView: 'produtos',
+  currentView: 'dashboard',
   isServerReady: false,
   healthCheckIntervalId: null,
   startTime: Date.now(),
@@ -35,7 +35,16 @@ const state = {
   // Carrinhos temporários de telas operacionais
   vendaItens: [],
   vendaPagamentos: [],
-  compraItens: []
+  compraItens: [],
+
+  // Métricas locais da sessão atual (sem alteração de back-end)
+  sessionVendasCount: 0,
+  sessionVendasCents: 0,
+  sessionTopProdutos: {},
+  dashboard: {
+    estoqueMode: 'produto',
+    terceiroMode: 'valor-estoque'
+  }
 };
 
 const currencyFormatter = new Intl.NumberFormat('pt-BR', {
@@ -543,7 +552,10 @@ function switchView(viewName) {
   document.getElementById('sidebar-backdrop')?.classList.remove('open');
 
   // Atualiza dados relevantes ao entrar na aba
-  if (viewName === 'vendas') {
+  if (viewName === 'dashboard') {
+    loadCaixaAberto();
+    renderDashboard();
+  } else if (viewName === 'vendas') {
     populateVendaSelects();
     loadCaixaAberto();
   } else if (viewName === 'caixa') {
@@ -595,6 +607,7 @@ async function loadProducts() {
     renderCategories();
     populateVendaSelects();
     populateCompraSelects();
+    renderDashboard();
     if (state.currentView === 'historico') populateHistoryRegistrySelect();
   } catch (error) {
     handleApiError(error, 'Erro ao carregar produtos do servidor.');
@@ -1348,6 +1361,7 @@ async function loadCaixaAberto() {
   }
   renderCaixa();
   updateVendaCaixaStatus();
+  renderDashboard();
 }
 
 function getCaixaSaldoEstimado() {
@@ -1758,9 +1772,25 @@ async function submitVenda() {
 
   try {
     await apiRequest('/api/vendas', { method: 'POST', body: payload });
+    state.sessionVendasCount += 1;
+    state.sessionVendasCents += totalCents;
+    state.vendaItens.forEach(item => {
+      const key = String(item.produtoId);
+      if (!state.sessionTopProdutos[key]) {
+        state.sessionTopProdutos[key] = {
+          produtoId: item.produtoId,
+          nome: item.nome,
+          unidades: 0,
+          valorCents: 0
+        };
+      }
+      state.sessionTopProdutos[key].unidades += item.quantidade;
+      state.sessionTopProdutos[key].valorCents += toCents(item.preco) * item.quantidade;
+    });
     showToast('Venda registrada com sucesso!', 'success');
     clearVenda();
     await Promise.all([loadProducts(), loadCaixaAberto()]);
+    renderDashboard();
   } catch (error) {
     handleApiError(error, 'Erro ao registrar venda.');
   } finally {
@@ -2005,6 +2035,237 @@ async function consultarHistorico() {
   }
 }
 
+
+// =========================================================================
+// MÓDULO DASHBOARD (SOMENTE FRONT-END, SEM ALTERAÇÃO NO BACK-END)
+// =========================================================================
+
+function renderBarRows(rows, maxVal, formatValueFn, colorClassFn) {
+  if (!rows.length) {
+    return '<div class="empty-state" style="padding: 28px 16px;"><div class="empty-state-title">Sem dados para exibir</div><div class="empty-state-text" style="margin-bottom:0;">Nenhum registro disponível para este gráfico no momento.</div></div>';
+  }
+  const safeMax = maxVal > 0 ? maxVal : 1;
+  return `<div class="bar-chart-list">${rows.map(r => {
+    const pct = Math.max(0, Math.min(100, (r.value / safeMax) * 100));
+    const colorClass = colorClassFn ? colorClassFn(r) : '';
+    const subHtml = r.sub ? `<span class="bar-chart-sub">(${escapeHtml(r.sub)})</span>` : '';
+    return `
+      <div class="bar-chart-row">
+        <div class="bar-chart-meta">
+          <div>
+            <span class="bar-chart-label">${escapeHtml(r.label)}</span>
+            ${subHtml}
+          </div>
+          <span class="bar-chart-value">${escapeHtml(formatValueFn(r.value, r))}</span>
+        </div>
+        <div class="bar-chart-track">
+          <div class="bar-chart-fill ${colorClass}" style="width: ${pct.toFixed(1)}%;"></div>
+        </div>
+      </div>
+    `;
+  }).join('')}</div>`;
+}
+
+function renderDashboard() {
+  const dashSection = document.getElementById('view-dashboard');
+  if (!dashSection) return;
+
+  const produtosAtivos = state.allProducts.filter(p => p.ativo !== false);
+  const totalUnidades = produtosAtivos.reduce((acc, p) => acc + (Number(p.quantidade) || 0), 0);
+  const totalEstoqueCents = produtosAtivos.reduce((acc, p) => acc + toCents(p.preco) * (Number(p.quantidade) || 0), 0);
+  const saldoCaixa = getCaixaSaldoEstimado();
+
+  const kpiUnidades = document.getElementById('dash-kpi-unidades');
+  const kpiEstoqueVal = document.getElementById('dash-kpi-estoque-valor');
+  const kpiCaixaSaldo = document.getElementById('dash-kpi-caixa-saldo');
+  const kpiSessao = document.getElementById('dash-kpi-sessao-vendas');
+
+  if (kpiUnidades) kpiUnidades.textContent = `${totalUnidades} un.`;
+  if (kpiEstoqueVal) kpiEstoqueVal.textContent = formatMoney(fromCents(totalEstoqueCents));
+  if (kpiCaixaSaldo) kpiCaixaSaldo.textContent = formatMoney(saldoCaixa);
+  if (kpiSessao) kpiSessao.textContent = `${state.sessionVendasCount} (${formatMoney(fromCents(state.sessionVendasCents))})`;
+
+  renderDashboardEstoqueChart(produtosAtivos);
+  renderDashboardCaixaChart();
+  renderDashboardTerceiroChart(produtosAtivos);
+}
+
+function renderDashboardEstoqueChart(produtosAtivos) {
+  const container = document.getElementById('dash-chart-estoque');
+  const subEl = document.getElementById('dash-estoque-sub');
+  const btnProd = document.getElementById('dash-estoque-mode-prod');
+  const btnCat = document.getElementById('dash-estoque-mode-cat');
+  if (!container) return;
+
+  const mode = state.dashboard.estoqueMode;
+  if (btnProd) btnProd.classList.toggle('active', mode === 'produto');
+  if (btnCat) btnCat.classList.toggle('active', mode === 'categoria');
+
+  if (mode === 'categoria') {
+    if (subEl) subEl.textContent = 'Unidades disponíveis agrupadas por categoria';
+    const mapCat = new Map();
+    produtosAtivos.forEach(p => {
+      const cat = p.categoriaNome || 'Geral';
+      const qtd = Number(p.quantidade) || 0;
+      const cur = mapCat.get(cat) || { label: cat, value: 0, itens: 0 };
+      cur.value += qtd;
+      cur.itens += 1;
+      mapCat.set(cat, cur);
+    });
+    const rows = Array.from(mapCat.values())
+      .sort((a, b) => b.value - a.value)
+      .map(r => ({ ...r, sub: `${r.itens} ${r.itens === 1 ? 'produto' : 'produtos'}` }));
+    const maxVal = rows.reduce((m, r) => Math.max(m, r.value), 0);
+    container.innerHTML = renderBarRows(
+      rows,
+      maxVal,
+      v => `${v} un.`,
+      r => r.value === 0 ? 'danger' : r.value <= 10 ? 'warning' : ''
+    );
+  } else {
+    if (subEl) subEl.textContent = 'Unidades disponíveis por produto ativo';
+    const rows = [...produtosAtivos]
+      .sort((a, b) => (Number(b.quantidade) || 0) - (Number(a.quantidade) || 0))
+      .map(p => ({
+        label: p.nome,
+        sub: p.categoriaNome || 'Geral',
+        value: Number(p.quantidade) || 0
+      }));
+    const maxVal = rows.reduce((m, r) => Math.max(m, r.value), 0);
+    container.innerHTML = renderBarRows(
+      rows,
+      maxVal,
+      v => `${v} un.`,
+      r => r.value === 0 ? 'danger' : r.value <= 10 ? 'warning' : ''
+    );
+  }
+}
+
+function renderDashboardCaixaChart() {
+  const container = document.getElementById('dash-chart-caixa');
+  const subEl = document.getElementById('dash-caixa-sub');
+  if (!container) return;
+
+  if (!state.caixaAberto) {
+    if (subEl) subEl.textContent = 'Nenhum caixa aberto no momento';
+    container.innerHTML = `
+      <div class="empty-state" style="padding: 28px 16px;">
+        <div class="empty-state-title">Caixa fechado</div>
+        <div class="empty-state-text" style="margin-bottom:0;">Abra o caixa na aba <strong>Caixa</strong> para visualizar abertura, entradas, saídas e saldo estimado.</div>
+      </div>
+    `;
+    return;
+  }
+
+  const abertura = Number(state.caixaAberto.valorAbertura ?? state.caixaAberto.valor_abertura ?? 0);
+  let entradasCents = 0;
+  let saidasCents = 0;
+  state.caixaMovimentacoes.forEach(m => {
+    const vCents = toCents(m.valor);
+    if (m.tipo === 'ENTRADA') entradasCents += vCents;
+    else if (m.tipo === 'SAIDA') saidasCents += vCents;
+  });
+
+  const entradas = fromCents(entradasCents);
+  const saidas = fromCents(saidasCents);
+  const saldo = getCaixaSaldoEstimado();
+
+  if (subEl) subEl.textContent = `Referente ao Caixa #${state.caixaAberto.id} aberto`;
+
+  const rows = [
+    { key: 'abertura', label: 'Valor de Abertura', sub: 'Fundo inicial', value: abertura },
+    { key: 'entradas', label: 'Entradas', sub: 'Vendas em dinheiro e entradas manuais', value: entradas },
+    { key: 'saidas', label: 'Saídas', sub: 'Retiradas / sangrias', value: saidas },
+    { key: 'saldo', label: 'Saldo Estimado', sub: 'Dinheiro esperado no caixa', value: saldo }
+  ];
+  const maxVal = rows.reduce((m, r) => Math.max(m, Math.abs(r.value)), 0);
+
+  container.innerHTML = renderBarRows(
+    rows,
+    maxVal,
+    v => formatMoney(v),
+    r => {
+      if (r.key === 'entradas') return 'success';
+      if (r.key === 'saidas') return 'danger';
+      if (r.key === 'saldo') return r.value >= 0 ? 'success' : 'danger';
+      return 'neutral';
+    }
+  );
+}
+
+function renderDashboardTerceiroChart(produtosAtivos) {
+  const container = document.getElementById('dash-chart-terceiro');
+  const tituloEl = document.getElementById('dash-terceiro-titulo');
+  const legendaEl = document.getElementById('dash-terceiro-legenda');
+  const btnValor = document.getElementById('dash-terceiro-mode-valor');
+  const btnTop3 = document.getElementById('dash-terceiro-mode-top3');
+  if (!container) return;
+
+  const mode = state.dashboard.terceiroMode;
+  if (btnValor) btnValor.classList.toggle('active', mode === 'valor-estoque');
+  if (btnTop3) btnTop3.classList.toggle('active', mode === 'top3-sessao');
+
+  if (mode === 'top3-sessao') {
+    if (tituloEl) tituloEl.textContent = 'Top 3 Produtos Mais Vendidos (Sessão Atual)';
+    if (legendaEl) legendaEl.textContent = 'Métrica limitada à sessão atual do navegador (o back-end não expõe histórico consolidado de vendas)';
+
+    const top3 = Object.values(state.sessionTopProdutos)
+      .sort((a, b) => b.unidades - a.unidades || b.valorCents - a.valorCents)
+      .slice(0, 3)
+      .map((item, idx) => ({
+        label: `#${idx + 1} ${item.nome}`,
+        sub: `Sessão atual • ${formatMoney(fromCents(item.valorCents))}`,
+        value: item.unidades
+      }));
+
+    if (!top3.length) {
+      container.innerHTML = `
+        <div class="empty-state" style="padding: 28px 16px;">
+          <div class="empty-state-title">Nenhuma venda registrada nesta sessão</div>
+          <div class="empty-state-text" style="margin-bottom:0;">Realize vendas na aba <strong>Vendas (PDV)</strong> durante esta sessão para rankear os top 3 produtos vendidos.</div>
+        </div>
+        <div class="dash-footnote">
+          <strong>Observação:</strong> Este ranking contabiliza apenas as vendas realizadas nesta sessão atual, pois o back-end não disponibiliza endpoint de consulta/histórico consolidado de vendas.
+        </div>
+      `;
+      return;
+    }
+
+    const maxVal = top3.reduce((m, r) => Math.max(m, r.value), 0);
+    container.innerHTML = `
+      ${renderBarRows(top3, maxVal, v => `${v} ${v === 1 ? 'un.' : 'un.'}`, () => 'success')}
+      <div class="dash-footnote">
+        <strong>Observação:</strong> Dados referentes exclusivamente à sessão atual do navegador (o back-end não expõe histórico consolidado de vendas).
+      </div>
+    `;
+  } else {
+    if (tituloEl) tituloEl.textContent = 'Valor Financeiro em Estoque por Categoria';
+    if (legendaEl) legendaEl.textContent = 'Capital estimado em estoque (preço × quantidade) por categoria de produto ativo';
+
+    const mapCatCents = new Map();
+    produtosAtivos.forEach(p => {
+      const cat = p.categoriaNome || 'Geral';
+      const qtd = Number(p.quantidade) || 0;
+      const cents = toCents(p.preco) * qtd;
+      const cur = mapCatCents.get(cat) || { label: cat, cents: 0, unidades: 0 };
+      cur.cents += cents;
+      cur.unidades += qtd;
+      mapCatCents.set(cat, cur);
+    });
+
+    const rows = Array.from(mapCatCents.values())
+      .sort((a, b) => b.cents - a.cents)
+      .map(r => ({
+        label: r.label,
+        sub: `${r.unidades} un. em estoque`,
+        value: fromCents(r.cents)
+      }));
+
+    const maxVal = rows.reduce((m, r) => Math.max(m, r.value), 0);
+    container.innerHTML = renderBarRows(rows, maxVal, v => formatMoney(v), () => '');
+  }
+}
+
 // =========================================================================
 // INICIALIZAÇÃO DE EVENTOS DO DOM
 // =========================================================================
@@ -2013,7 +2274,30 @@ document.addEventListener('DOMContentLoaded', () => {
   startHealthCheck();
   updateOperatorUI();
 
-  // Navegação principal
+  // Dashboard
+  document.getElementById('dashboard-refresh-btn')?.addEventListener('click', async () => {
+    await Promise.allSettled([loadProducts(), loadCategories(), loadCaixaAberto()]);
+    renderDashboard();
+    showToast('Dashboard atualizado!', 'info');
+  });
+  document.getElementById('dash-estoque-mode-prod')?.addEventListener('click', () => {
+    state.dashboard.estoqueMode = 'produto';
+    renderDashboard();
+  });
+  document.getElementById('dash-estoque-mode-cat')?.addEventListener('click', () => {
+    state.dashboard.estoqueMode = 'categoria';
+    renderDashboard();
+  });
+  document.getElementById('dash-terceiro-mode-valor')?.addEventListener('click', () => {
+    state.dashboard.terceiroMode = 'valor-estoque';
+    renderDashboard();
+  });
+  document.getElementById('dash-terceiro-mode-top3')?.addEventListener('click', () => {
+    state.dashboard.terceiroMode = 'top3-sessao';
+    renderDashboard();
+  });
+
+    // Navegação principal
   document.querySelectorAll('.nav-item').forEach(btn => {
     btn.addEventListener('click', () => switchView(btn.dataset.view));
   });
