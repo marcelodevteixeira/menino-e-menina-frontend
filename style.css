@@ -49,13 +49,13 @@ body {
 #cold-start-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(15, 23, 42, 0.62);
+  background-color: rgba(15, 23, 42, 0.65);
   backdrop-filter: blur(8px);
   z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: 14px;
   overflow-y: auto;
   transition: opacity 0.3s ease, visibility 0.3s ease;
 }
@@ -67,46 +67,48 @@ body {
 }
 
 .splash-card {
-  background-color: var(--card-bg);
-  border: 1px solid var(--border-color);
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 16px;
   width: 100%;
-  max-width: 760px;
-  max-height: 92vh;
+  max-width: 820px;
+  max-height: 94vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 24px 48px -12px rgba(15, 23, 42, 0.28);
+  box-shadow: 0 24px 48px -12px rgba(15, 23, 42, 0.32);
   overflow: hidden;
   text-align: left;
+  color: #0f172a;
 }
 
 .splash-top {
-  padding: 22px 24px 18px 24px;
+  padding: 18px 22px 14px 22px;
   background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%);
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0;
 }
 
 .splash-brand-row {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
+  gap: 14px;
   flex-wrap: wrap;
 }
 
 .splash-title {
   font-family: 'Outfit', sans-serif;
-  font-size: 22px;
+  font-size: 21px;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #0f172a;
   letter-spacing: -0.02em;
-  margin-top: 6px;
+  margin-top: 5px;
 }
 
 .splash-intro {
-  font-size: 13.5px;
+  font-size: 13px;
   color: #334155;
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
 .splash-status-box {
@@ -114,22 +116,22 @@ body {
   align-items: center;
   gap: 10px;
   background-color: #ffffff;
-  border: 1px solid var(--border-color);
+  border: 1px solid #cbd5e1;
   border-radius: 10px;
-  padding: 8px 12px;
-  box-shadow: var(--shadow-sm);
+  padding: 7px 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .splash-status-box.ready {
   border-color: #a7f3d0;
-  background-color: var(--success-bg);
+  background-color: #ecfdf5;
 }
 
 .spinner {
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   border: 3px solid #e2e8f0;
-  border-top-color: var(--primary-color);
+  border-top-color: #2563eb;
   border-radius: 50%;
   animation: spin 0.85s linear infinite;
   flex-shrink: 0;
@@ -137,16 +139,16 @@ body {
 
 .splash-status-box.ready .spinner {
   animation: none;
-  border-color: var(--success-color);
-  background-color: var(--success-color);
+  border-color: #10b981;
+  background-color: #10b981;
   position: relative;
 }
 
 .splash-status-box.ready .spinner::after {
   content: "";
   position: absolute;
-  left: 7px;
-  top: 3px;
+  left: 6px;
+  top: 2px;
   width: 5px;
   height: 10px;
   border: solid #ffffff;
@@ -161,12 +163,12 @@ body {
 .splash-status-label {
   font-size: 12.5px;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #0f172a;
 }
 
 .cold-start-subtext {
-  font-size: 12px;
-  color: var(--text-secondary);
+  font-size: 11.5px;
+  color: #64748b;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -175,19 +177,19 @@ body {
 .cold-start-timer {
   font-family: monospace;
   font-weight: 700;
-  color: var(--primary-color);
+  color: #2563eb;
   background: #e0e7ff;
   padding: 1px 7px;
   border-radius: 5px;
 }
 
 .splash-progress-wrap {
-  margin-top: 14px;
+  margin-top: 10px;
 }
 
 .splash-progress-track {
   width: 100%;
-  height: 10px;
+  height: 9px;
   background-color: #dbeafe;
   border-radius: 999px;
   overflow: hidden;
@@ -206,7 +208,7 @@ body {
 
 .splash-progress-bar.complete {
   width: 100% !important;
-  background: var(--success-color);
+  background: #10b981;
   animation: none;
 }
 
@@ -219,47 +221,47 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
-  color: var(--text-secondary);
-  margin-top: 5px;
+  color: #64748b;
+  margin-top: 4px;
 }
 
 .splash-body {
-  padding: 18px 24px;
+  padding: 14px 22px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .splash-section-title {
   font-family: 'Outfit', sans-serif;
-  font-size: 15px;
+  font-size: 14.5px;
   font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 10px;
+  color: #0f172a;
+  margin-bottom: 8px;
 }
 
 .splash-users-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 10px;
 }
 
 .splash-user-card {
-  border: 1px solid var(--border-color);
+  border: 1px solid #e2e8f0;
   border-radius: 10px;
-  padding: 12px 14px;
+  padding: 10px 12px;
   background-color: #f8fafc;
 }
 
 .splash-user-head {
-  margin-bottom: 6px;
+  margin-bottom: 5px;
 }
 
 .splash-user-info {
-  font-size: 13px;
+  font-size: 12.5px;
   color: #334155;
   display: flex;
   flex-direction: column;
@@ -269,13 +271,13 @@ body {
 .splash-roles-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 10px;
 }
 
 .splash-role-box {
-  border: 1px solid var(--border-color);
+  border: 1px solid #e2e8f0;
   border-radius: 10px;
-  padding: 12px 14px;
+  padding: 10px 12px;
   background-color: #ffffff;
 }
 
@@ -284,49 +286,50 @@ body {
 }
 
 .splash-role-box h3 {
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 700;
-  color: var(--primary-color);
-  margin-bottom: 6px;
+  color: #2563eb;
+  margin-bottom: 5px;
 }
 
 .splash-role-box ul {
   padding-left: 18px;
-  font-size: 13px;
+  font-size: 12.5px;
   color: #334155;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
 }
 
 .splash-two-col-list {
   display: grid !important;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 4px 20px !important;
+  gap: 3px 18px !important;
 }
 
 .splash-form-box {
   border: 1px solid #bfdbfe;
   background-color: #eff6ff;
   border-radius: 10px;
-  padding: 12px 14px;
+  padding: 10px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
-  font-size: 13px;
+  font-size: 12.5px;
 }
 
 .splash-footer {
-  padding: 14px 24px;
+  padding: 12px 22px;
   background-color: #f8fafc;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
+  flex-shrink: 0;
 }
 
 @media (max-width: 680px) {
@@ -338,8 +341,8 @@ body {
   .splash-top,
   .splash-body,
   .splash-footer {
-    padding-left: 16px;
-    padding-right: 16px;
+    padding-left: 14px;
+    padding-right: 14px;
   }
 }
 
