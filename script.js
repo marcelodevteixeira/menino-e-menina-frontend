@@ -487,9 +487,42 @@ function handleLogout() {
 // HEALTH CHECK / COLD START (GET /api/health)
 // =========================================================================
 
-function startHealthCheck() {
+function openSplashOverlay() {
   const overlay = document.getElementById('cold-start-overlay');
+  if (overlay) overlay.classList.remove('hidden');
+}
+
+function closeSplashOverlay() {
+  if (!state.isServerReady) return;
+  const overlay = document.getElementById('cold-start-overlay');
+  if (overlay) overlay.classList.add('hidden');
+}
+
+function startHealthCheck() {
   const timerElem = document.getElementById('cold-start-elapsed');
+  const progressBar = document.getElementById('splash-progress-bar');
+  const progressPct = document.getElementById('splash-progress-pct');
+  const progressHint = document.getElementById('splash-progress-hint');
+  const statusBox = document.getElementById('splash-status-box');
+  const statusText = document.getElementById('cold-start-status-text');
+  const footerNote = document.getElementById('splash-footer-note');
+  const enterBtn = document.getElementById('splash-enter-btn');
+
+  const updateProgressUI = elapsedSecs => {
+    if (timerElem) timerElem.textContent = `${elapsedSecs}s`;
+    if (state.isServerReady) return;
+    // Curva suave até 92% em ~60s enquanto aguarda o cold start do Render
+    const pct = Math.min(92, Math.max(6, Math.round(6 + (elapsedSecs / 60) * 86)));
+    if (progressBar) progressBar.style.width = `${pct}%`;
+    if (progressPct) progressPct.textContent = `${pct}%`;
+    if (progressHint) {
+      progressHint.textContent = elapsedSecs < 10
+        ? 'Conectando à API no Render...'
+        : 'Servidor acordando (pode levar até ~1 minuto)...';
+    }
+  };
+
+  updateProgressUI(0);
 
   const timerInterval = setInterval(() => {
     if (state.isServerReady) {
@@ -497,7 +530,7 @@ function startHealthCheck() {
       return;
     }
     const elapsedSecs = Math.floor((Date.now() - state.startTime) / 1000);
-    if (timerElem) timerElem.textContent = `${elapsedSecs}s`;
+    updateProgressUI(elapsedSecs);
   }, 1000);
 
   async function checkHealth() {
@@ -507,7 +540,20 @@ function startHealthCheck() {
         state.isServerReady = true;
         clearInterval(state.healthCheckIntervalId);
         clearInterval(timerInterval);
-        if (overlay) overlay.classList.add('hidden');
+
+        if (progressBar) {
+          progressBar.style.width = '100%';
+          progressBar.classList.add('complete');
+        }
+        if (progressPct) progressPct.textContent = '100%';
+        if (progressHint) progressHint.textContent = 'Servidor conectado e pronto para uso!';
+        if (statusBox) statusBox.classList.add('ready');
+        if (statusText) statusText.textContent = 'Servidor conectado!';
+        if (footerNote) footerNote.textContent = 'Sistema pronto! Clique em "Entrar no Sistema" quando terminar de ler.';
+        if (enterBtn) {
+          enterBtn.disabled = false;
+          enterBtn.textContent = 'Entrar no Sistema';
+        }
 
         await loadInitialData();
         showToast('Servidor conectado com sucesso!', 'success');
@@ -675,11 +721,18 @@ function renderProducts() {
   let filtered = state.products;
   if (state.searchQuery.trim() !== '') {
     const q = state.searchQuery.toLowerCase().trim();
-    filtered = filtered.filter(p =>
-      (p.nome && p.nome.toLowerCase().includes(q)) ||
-      (p.categoriaNome && p.categoriaNome.toLowerCase().includes(q)) ||
-      String(p.id) === q
-    );
+    const qDigits = onlyDigits(q);
+    filtered = filtered.filter(p => {
+      const barcode = String(p.codigoBarras ?? p.codigo_barras ?? p.ean ?? '').trim();
+      const barcodeDigits = onlyDigits(barcode);
+      return (
+        (p.nome && p.nome.toLowerCase().includes(q)) ||
+        (p.categoriaNome && p.categoriaNome.toLowerCase().includes(q)) ||
+        (barcode && barcode.toLowerCase().includes(q)) ||
+        (qDigits && barcodeDigits && barcodeDigits.includes(qDigits)) ||
+        String(p.id) === q
+      );
+    });
   }
 
   if (countLabel) {
@@ -724,6 +777,9 @@ function renderProducts() {
           <span class="card-id">ID #${product.id} ${isInactive ? '<span class="status-badge inactive">Inativo</span>' : ''}</span>
         </div>
         <h3 class="card-title">${escapeHtml(product.nome)}</h3>
+        ${(product.codigoBarras || product.codigo_barras || product.ean)
+          ? `<div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;">Cód. barras: <code>${escapeHtml(String(product.codigoBarras || product.codigo_barras || product.ean))}</code></div>`
+          : ''}
         <div class="card-price">${formatMoney(product.preco)}</div>
 
         <div class="card-stock-info">
@@ -801,18 +857,24 @@ async function handleProductSubmit(e) {
 
   const nome = document.getElementById('product-name').value.trim();
   const categoriaId = parseInt(document.getElementById('product-category').value, 10);
+  const barcodeRaw = (document.getElementById('product-barcode')?.value || '').trim();
+  const barcodeDigits = onlyDigits(barcodeRaw);
   const preco = parseFloat(document.getElementById('product-price').value);
   const quantidade = parseInt(document.getElementById('product-quantity').value, 10);
   const saveBtn = document.getElementById('save-product-btn');
 
   if (!nome) return showToast('Preencha o nome do produto.', 'error');
   if (Number.isNaN(categoriaId)) return showToast('Selecione uma categoria válida.', 'error');
+  if (barcodeRaw && barcodeDigits !== barcodeRaw) {
+    return showToast('O código de barras deve conter apenas dígitos (sem letras ou pontuação).', 'error');
+  }
   if (Number.isNaN(preco) || preco < 0) return showToast('O preço não pode ser negativo.', 'error');
   if (Number.isNaN(quantidade) || quantidade < 0) return showToast('A quantidade não pode ser negativa.', 'error');
 
   const payload = {
     nome,
     categoriaId,
+    codigoBarras: barcodeDigits || null,
     quantidade,
     preco,
     ...getCredenciais()
@@ -2309,6 +2371,8 @@ function renderDashboardTerceiroChart(produtosAtivos) {
 document.addEventListener('DOMContentLoaded', () => {
   startHealthCheck();
   updateOperatorUI();
+  document.getElementById('splash-enter-btn')?.addEventListener('click', closeSplashOverlay);
+  document.getElementById('open-splash-guide-btn')?.addEventListener('click', openSplashOverlay);
 
   // Dashboard
   document.getElementById('dashboard-refresh-btn')?.addEventListener('click', async () => {
@@ -2369,6 +2433,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Produtos
+  document.getElementById('product-barcode')?.addEventListener('input', e => {
+    e.target.value = onlyDigits(e.target.value);
+  });
   document.getElementById('open-product-modal-btn')?.addEventListener('click', openProductModal);
   document.getElementById('product-form')?.addEventListener('submit', handleProductSubmit);
   document.getElementById('open-reactivate-product-btn')?.addEventListener('click', () => {
