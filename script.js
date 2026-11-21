@@ -1607,21 +1607,35 @@ function addVendaItem() {
 
   document.getElementById('venda-qtd').value = 1;
   renderVendaState();
+  const remCents = getVendaTotalCents() - getVendaPagoCents();
+  const pagInput = document.getElementById('venda-valor-pagamento');
+  if (pagInput && remCents > 0) {
+    pagInput.value = fromCents(remCents).toFixed(2);
+  }
 }
 
 function addVendaPagamento() {
   const forma = document.getElementById('venda-forma-pagamento').value;
   const valorInput = document.getElementById('venda-valor-pagamento');
-  const valorCents = toCents(parseFloat(valorInput.value));
+  const rawVal = parseFloat(valorInput.value);
+  const remBeforeCents = getVendaTotalCents() - getVendaPagoCents();
 
-  if (valorCents <= 0) return showToast('Informe um valor de pagamento maior que zero.', 'error');
+  let valorCents = Number.isNaN(rawVal) ? 0 : toCents(rawVal);
+
+  // Se o campo estiver vazio ou zerado e houver saldo restante, assume automaticamente o valor restante
+  if (valorCents <= 0 && remBeforeCents > 0) {
+    valorCents = remBeforeCents;
+  }
+
+  if (valorCents <= 0) return showToast('Adicione itens à venda ou informe um valor maior que zero.', 'error');
   if (forma === 'DINHEIRO' && !state.caixaAberto) {
     return showToast('Pagamento em DINHEIRO exige caixa aberto. Abra o caixa ou escolha PIX/Cartão.', 'error');
   }
 
   state.vendaPagamentos.push({ formaPagamento: forma, valorCents });
-  valorInput.value = '';
   renderVendaState();
+  const remAfterCents = getVendaTotalCents() - getVendaPagoCents();
+  valorInput.value = remAfterCents > 0 ? fromCents(remAfterCents).toFixed(2) : '';
 }
 
 function fillVendaRestante() {
@@ -1655,6 +1669,11 @@ function renderVendaState() {
       tr.querySelector('button').addEventListener('click', () => {
         state.vendaItens.splice(idx, 1);
         renderVendaState();
+        const remCents = getVendaTotalCents() - getVendaPagoCents();
+        const pagInput = document.getElementById('venda-valor-pagamento');
+        if (pagInput) {
+          pagInput.value = remCents > 0 ? fromCents(remCents).toFixed(2) : '';
+        }
       });
       itensTbody.appendChild(tr);
     });
