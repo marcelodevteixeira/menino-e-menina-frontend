@@ -7,7 +7,7 @@ const state = {
   healthCheckIntervalId: null,
   startTime: Date.now(),
 
-  // Credenciais mantidas exclusivamente em memória
+  // Credenciais mantidas exclusivamente em memória (nunca em localStorage)
   auth: {
     login: '',
     senha: '',
@@ -16,7 +16,7 @@ const state = {
     id: null
   },
 
-  // Dados sincronizados com o backend
+  // Dados sincronizados com o backend (fonte da verdade)
   categories: [],
   products: [],
   allProducts: [],
@@ -231,15 +231,36 @@ async function apiRequest(path, options = {}) {
   return body;
 }
 
+function setLoginModalAlert(message = '', type = 'warning') {
+  const alertEl = document.getElementById('login-modal-alert');
+  if (!alertEl) return;
+  if (!message) {
+    alertEl.textContent = '';
+    alertEl.className = 'alert-banner warning hidden';
+    return;
+  }
+  alertEl.textContent = message;
+  alertEl.className = `alert-banner ${type}`;
+}
+
 function handleApiError(error, fallbackMessage = 'Operação não concluída.') {
   const msg = error?.message || fallbackMessage;
   if (error?.status === 401) {
     showToast(`Autenticação falhou (401): ${msg}`, 'error');
-    openLoginModal();
+    openLoginModal({
+      alertMessage: `Credenciais inválidas: ${msg}`,
+      alertType: 'error'
+    });
     return;
   }
   if (error?.status === 403) {
     showToast(`Acesso negado (403): ${msg}`, 'error');
+    openLoginModal({
+      title: 'Acesso Exclusivo — Proprietária',
+      alertMessage: `Esta função é exclusiva do perfil PROPRIETARIA. (${msg}) Identifique-se com uma conta de PROPRIETARIA para continuar.`,
+      alertType: 'warning',
+      clearUser: true
+    });
     return;
   }
   if (error?.status === 404) {
@@ -259,14 +280,39 @@ function isAuthenticated() {
 
 function requireAuth(requiredPerfil = null) {
   if (!isAuthenticated()) {
-    showToast('Identifique o operador antes de realizar esta operação.', 'info');
-    openLoginModal();
+    if (requiredPerfil === 'PROPRIETARIA') {
+      const msg = 'Esta função é exclusiva do perfil PROPRIETARIA. Faça login com uma conta de PROPRIETARIA para continuar.';
+      showToast('Função exclusiva do perfil PROPRIETARIA.', 'info');
+      openLoginModal({
+        title: 'Acesso Exclusivo — Proprietária',
+        alertMessage: msg,
+        alertType: 'warning',
+        clearUser: true
+      });
+    } else {
+      showToast('Identifique o operador antes de realizar esta operação.', 'info');
+      openLoginModal({
+        alertMessage: 'Identifique-se com um funcionário ativo para realizar esta operação.',
+        alertType: 'info'
+      });
+    }
     return false;
   }
-  if (requiredPerfil && state.auth.perfil && state.auth.perfil !== requiredPerfil) {
-    showToast(`Esta operação exige perfil ${requiredPerfil}. Operador atual: ${state.auth.perfil}.`, 'error');
+
+  if (requiredPerfil && state.auth.perfil !== requiredPerfil) {
+    const operadorAtual = state.auth.nome || state.auth.login;
+    const perfilAtual = state.auth.perfil || 'sem perfil';
+    const msg = `Esta função é exclusiva do perfil ${requiredPerfil}. Você está identificado como ${operadorAtual} (${perfilAtual}). Faça login com uma conta de ${requiredPerfil} para continuar.`;
+    showToast(`Função exclusiva do perfil ${requiredPerfil}.`, 'error');
+    openLoginModal({
+      title: `Acesso Exclusivo — ${requiredPerfil === 'PROPRIETARIA' ? 'Proprietária' : requiredPerfil}`,
+      alertMessage: msg,
+      alertType: 'warning',
+      clearUser: true
+    });
     return false;
   }
+
   return true;
 }
 
@@ -298,53 +344,132 @@ function updateOperatorUI() {
   }
 }
 
-function openLoginModal() {
+function openLoginModal(options = {}) {
+  const opts = (options && !(options instanceof Event)) ? options : {};
   const form = document.getElementById('login-form');
+  const titleEl = document.getElementById('login-modal-title');
+  const userInput = document.getElementById('login-usuario');
+  const passInput = document.getElementById('login-senha');
+
   if (form) form.reset();
-  if (state.auth.login) {
-    document.getElementById('login-usuario').value = state.auth.login;
+  if (titleEl) titleEl.textContent = opts.title || 'Identificação do Operador';
+  setLoginModalAlert(opts.alertMessage || '', opts.alertType || 'warning');
+
+  if (!opts.clearUser && state.auth.login && userInput) {
+    userInput.value = state.auth.login;
   }
+
   openModal('login-modal');
-  setTimeout(() => document.getElementById('login-usuario')?.focus(), 120);
+  setTimeout(() => {
+    if (userInput && userInput.value) passInput?.focus();
+    else userInput?.focus();
+  }, 120);
 }
 
 async function handleLoginSubmit(e) {
   e.preventDefault();
-  const login = document.getElementById('login-usuario').value.trim();
-  const senha = document.getElementById('login-senha').value;
+  const loginInput = document.getElementById('login-usuario');
+  const senhaInput = document.getElementById('login-senha');
+  const submitBtn = document.getElementById('login-submit-btn');
+
+  const login = loginInput.value.trim();
+  const senha = senhaInput.value;
 
   if (!login || !senha) {
-    showToast('Informe login e senha do funcionário.', 'error');
+    setLoginModalAlert('Informe login e senha do funcionário.', 'error');
     return;
   }
 
-  // Consulta funcionários carregados para exibir nome e perfil corretos na interface
-  if (state.funcionarios.length === 0) {
-    await loadFuncionarios().catch(() => {});
+  const origText = submitBtn ? submitBtn.textContent : 'Entrar';
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Validando...';
   }
-  const found = state.funcionarios.find(f => f.login && f.login.toLowerCase() === login.toLowerCase());
-  if (found && found.ativo === false) {
-    showToast('Este funcionário encontra-se desativado.', 'error');
-    return;
+  setLoginModalAlert('');
+
+  try {
+    // Atualiza a lista de funcionários do back-end para reconhecer contas novas ou desativadas
+    try {
+      const funcs = await apiRequest('/api/funcionarios');
+      if (Array.isArray(funcs)) {
+        state.funcionarios = funcs;
+        document.getElementById('nav-count-funcionarios').textContent = state.funcionarios.length;
+      }
+    } catch {
+      if (state.funcionarios.length === 0) {
+        const msg = 'Não foi possível consultar os funcionários no servidor. Tente novamente.';
+        setLoginModalAlert(msg, 'error');
+        showToast(msg, 'error');
+        return;
+      }
+    }
+
+    const found = state.funcionarios.find(f => f.login && f.login.toLowerCase() === login.toLowerCase());
+    if (!found) {
+      const msg = 'Login não encontrado. Informe um usuário cadastrado no sistema.';
+      setLoginModalAlert(msg, 'error');
+      showToast(msg, 'error');
+      return;
+    }
+
+    if (found.ativo === false) {
+      const msg = 'Este funcionário está desativado e não pode acessar o sistema.';
+      setLoginModalAlert(msg, 'error');
+      showToast(msg, 'error');
+      return;
+    }
+
+    // Valida a senha contra o back-end usando uma consulta protegida de somente leitura (não altera dados)
+    try {
+      await apiRequest(`/api/historico/funcionarios/${found.id}`, {
+        method: 'POST',
+        body: { login: found.login, senha }
+      });
+      // 200 OK -> senha válida (PROPRIETARIA)
+    } catch (authErr) {
+      if (authErr.status === 403) {
+        // 403 Forbidden -> senha validada pelo back-end; usuário autenticado com perfil VENDEDOR
+      } else if (authErr.status === 401 || authErr.status === 400) {
+        const msg = authErr.message || 'Credenciais inválidas. Verifique login e senha.';
+        setLoginModalAlert(msg, 'error');
+        showToast(msg, 'error');
+        senhaInput.value = '';
+        senhaInput.focus();
+        return;
+      } else {
+        const msg = authErr.message || 'Erro ao validar credenciais no servidor.';
+        setLoginModalAlert(msg, 'error');
+        showToast(msg, 'error');
+        return;
+      }
+    }
+
+    state.auth = {
+      login: found.login,
+      senha: senha,
+      nome: found.nome,
+      perfil: found.perfil,
+      id: found.id
+    };
+
+    senhaInput.value = '';
+    setLoginModalAlert('');
+    updateOperatorUI();
+    renderFuncionarios();
+    closeModal('login-modal');
+    showToast(`Operador ${state.auth.nome} (${state.auth.perfil}) autenticado com sucesso!`, 'success');
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = origText;
+    }
   }
-
-  state.auth = {
-    login: found ? found.login : login,
-    senha: senha,
-    nome: found ? found.nome : login,
-    perfil: found ? found.perfil : '',
-    id: found ? found.id : null
-  };
-
-  document.getElementById('login-senha').value = '';
-  updateOperatorUI();
-  closeModal('login-modal');
-  showToast(`Operador ${state.auth.nome} identificado em memória.`, 'success');
 }
 
 function handleLogout() {
   state.auth = { login: '', senha: '', nome: '', perfil: '', id: null };
   updateOperatorUI();
+  renderFuncionarios();
   showToast('Sessão encerrada.', 'info');
 }
 
@@ -1659,6 +1784,7 @@ function populateCompraSelects() {
 }
 
 function addCompraItem() {
+  if (!requireAuth('PROPRIETARIA')) return;
   const prodId = parseInt(document.getElementById('compra-produto').value, 10);
   const qtd = parseInt(document.getElementById('compra-qtd').value, 10);
   const custo = parseFloat(document.getElementById('compra-custo').value);
@@ -1778,6 +1904,7 @@ function populateHistoryRegistrySelect() {
 }
 
 function openHistoryFor(tipo, id) {
+  if (!requireAuth('PROPRIETARIA')) return;
   switchView('historico');
   document.getElementById('hist-tipo').value = tipo;
   populateHistoryRegistrySelect();
@@ -1884,8 +2011,8 @@ document.addEventListener('DOMContentLoaded', () => {
   sidebarBackdrop?.addEventListener('click', toggleMobileMenu);
 
   // Autenticação em memória
-  document.getElementById('open-login-btn')?.addEventListener('click', openLoginModal);
-  document.getElementById('mobile-auth-btn')?.addEventListener('click', openLoginModal);
+  document.getElementById('open-login-btn')?.addEventListener('click', () => openLoginModal());
+  document.getElementById('mobile-auth-btn')?.addEventListener('click', () => openLoginModal());
   document.getElementById('logout-btn')?.addEventListener('click', handleLogout);
   document.getElementById('login-form')?.addEventListener('submit', handleLoginSubmit);
 
@@ -1938,6 +2065,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Caixa
   document.getElementById('caixa-refresh-btn')?.addEventListener('click', loadCaixaAberto);
+  ['caixa-abrir-btn', 'caixa-entrada-btn', 'caixa-retirada-btn', 'caixa-fechar-btn'].forEach(btnId => {
+    document.getElementById(btnId)?.addEventListener('click', e => {
+      if (!isAuthenticated() || state.auth.perfil !== 'PROPRIETARIA') {
+        e.preventDefault();
+        requireAuth('PROPRIETARIA');
+      }
+    });
+  });
   document.getElementById('caixa-abrir-form')?.addEventListener('submit', handleCaixaAbrir);
   document.getElementById('caixa-entrada-form')?.addEventListener('submit', e => handleCaixaMovimento(e, 'entrada'));
   document.getElementById('caixa-retirada-form')?.addEventListener('submit', e => handleCaixaMovimento(e, 'retirada'));
