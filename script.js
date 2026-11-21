@@ -35,6 +35,7 @@ const state = {
   // Carrinhos temporários de telas operacionais
   vendaItens: [],
   vendaPagamentos: [],
+  vendaProdutoSearch: '',
   compraItens: [],
 
   // Métricas locais da sessão atual (sem alteração de back-end)
@@ -1572,14 +1573,49 @@ function populateVendaSelects() {
   }
   if (prodSel) {
     const prev = prodSel.value;
-    prodSel.innerHTML = '<option value="">Selecione um produto...</option>';
-    state.allProducts.filter(p => p.ativo !== false && (Number(p.quantidade) || 0) > 0).forEach(p => {
+    const rawSearch = (state.vendaProdutoSearch || '').trim();
+    const qLower = rawSearch.toLowerCase();
+    const qDigits = onlyDigits(rawSearch);
+
+    const disponiveis = state.allProducts.filter(p => p.ativo !== false && (Number(p.quantidade) || 0) > 0);
+    const filtrados = !rawSearch
+      ? disponiveis
+      : disponiveis.filter(p => {
+          const nomeMatch = p.nome && p.nome.toLowerCase().includes(qLower);
+          const idMatch = String(p.id) === rawSearch;
+          const barcodeRaw = String(p.codigoBarras ?? p.codigo_barras ?? p.ean ?? '').trim();
+          const barcodeDigits = onlyDigits(barcodeRaw);
+          const barcodeMatch =
+            (barcodeRaw && barcodeRaw.toLowerCase().includes(qLower)) ||
+            (qDigits && barcodeDigits && barcodeDigits.includes(qDigits));
+          return Boolean(nomeMatch || idMatch || barcodeMatch);
+        });
+
+    prodSel.innerHTML = `<option value="">${
+      rawSearch
+        ? (filtrados.length ? `Selecione (${filtrados.length} encontrado${filtrados.length === 1 ? '' : 's'})...` : 'Nenhum produto encontrado na busca')
+        : 'Selecione um produto...'
+    }</option>`;
+
+    filtrados.forEach(p => {
+      const barcodeRaw = String(p.codigoBarras ?? p.codigo_barras ?? p.ean ?? '').trim();
       const opt = document.createElement('option');
       opt.value = p.id;
-      opt.textContent = `${p.nome} — ${formatMoney(p.preco)} (Estoque: ${p.quantidade})`;
+      opt.textContent = `${p.nome}${barcodeRaw ? ` [${barcodeRaw}]` : ''} — ${formatMoney(p.preco)} (Estoque: ${p.quantidade})`;
       prodSel.appendChild(opt);
     });
-    if (prev) prodSel.value = prev;
+
+    const exactBarcode = qDigits
+      ? filtrados.find(p => onlyDigits(p.codigoBarras ?? p.codigo_barras ?? p.ean ?? '') === qDigits)
+      : null;
+
+    if (exactBarcode) {
+      prodSel.value = String(exactBarcode.id);
+    } else if (prev && filtrados.some(p => String(p.id) === String(prev))) {
+      prodSel.value = prev;
+    } else if (rawSearch && filtrados.length === 1) {
+      prodSel.value = String(filtrados[0].id);
+    }
   }
 }
 
@@ -2382,6 +2418,26 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('caixa-fechar-form')?.addEventListener('submit', handleCaixaFechar);
 
   // Vendas
+  document.getElementById('venda-produto-busca')?.addEventListener('input', e => {
+    state.vendaProdutoSearch = e.target.value;
+    populateVendaSelects();
+  });
+  document.getElementById('venda-produto-busca')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const prodSel = document.getElementById('venda-produto');
+      if (prodSel && prodSel.value) {
+        e.preventDefault();
+        addVendaItem();
+      }
+    }
+  });
+  document.getElementById('venda-busca-limpar-btn')?.addEventListener('click', () => {
+    const buscaInput = document.getElementById('venda-produto-busca');
+    if (buscaInput) buscaInput.value = '';
+    state.vendaProdutoSearch = '';
+    populateVendaSelects();
+    buscaInput?.focus();
+  });
   document.getElementById('venda-add-item-btn')?.addEventListener('click', addVendaItem);
   document.getElementById('venda-add-pag-btn')?.addEventListener('click', addVendaPagamento);
   document.getElementById('venda-fill-rest-btn')?.addEventListener('click', fillVendaRestante);
