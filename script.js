@@ -1404,7 +1404,14 @@ async function toggleFuncionarioStatus(id, ativar, btn) {
 // MÓDULO 5: CAIXA
 // =========================================================================
 
-async function loadCaixaAberto() {
+async function loadCaixaAberto(notify = false) {
+  const refreshBtn = document.getElementById('caixa-refresh-btn');
+  const origText = refreshBtn ? refreshBtn.textContent : 'Atualizar Caixa';
+  if (refreshBtn && notify) {
+    refreshBtn.disabled = true;
+    refreshBtn.textContent = 'Atualizando...';
+  }
+  let ok = false;
   try {
     const caixa = await apiRequest('/api/caixa/aberto');
     state.caixaAberto = caixa;
@@ -1414,17 +1421,33 @@ async function loadCaixaAberto() {
     } else {
       state.caixaMovimentacoes = [];
     }
+    ok = true;
   } catch (error) {
     if (error.status === 404) {
       state.caixaAberto = null;
       state.caixaMovimentacoes = [];
+      ok = true;
     } else {
       handleApiError(error, 'Erro ao consultar o estado do caixa.');
+    }
+  } finally {
+    if (refreshBtn && notify) {
+      refreshBtn.disabled = false;
+      refreshBtn.textContent = origText;
+      refreshBtn.blur();
     }
   }
   renderCaixa();
   updateVendaCaixaStatus();
   renderDashboard();
+  if (notify && ok) {
+    showToast(
+      state.caixaAberto
+        ? `Caixa #${state.caixaAberto.id} atualizado!`
+        : 'Caixa atualizado: fechado no momento.',
+      'success'
+    );
+  }
 }
 
 function getCaixaSaldoEstimado() {
@@ -2375,10 +2398,20 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('open-splash-guide-btn')?.addEventListener('click', openSplashOverlay);
 
   // Dashboard
-  document.getElementById('dashboard-refresh-btn')?.addEventListener('click', async () => {
-    await Promise.allSettled([loadProducts(), loadCategories(), loadCaixaAberto()]);
-    renderDashboard();
-    showToast('Dashboard atualizado!', 'info');
+  document.getElementById('dashboard-refresh-btn')?.addEventListener('click', async e => {
+    const btn = e.currentTarget;
+    const orig = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Atualizando...';
+    try {
+      await Promise.allSettled([loadProducts(), loadCategories(), loadCaixaAberto()]);
+      renderDashboard();
+      showToast('Dashboard atualizado!', 'success');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = orig;
+      btn.blur();
+    }
   });
   document.getElementById('dash-estoque-mode-prod')?.addEventListener('click', () => {
     state.dashboard.estoqueMode = 'produto';
@@ -2470,7 +2503,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('funcionario-form')?.addEventListener('submit', handleFuncionarioSubmit);
 
   // Caixa
-  document.getElementById('caixa-refresh-btn')?.addEventListener('click', loadCaixaAberto);
+  document.getElementById('caixa-refresh-btn')?.addEventListener('click', () => loadCaixaAberto(true));
   ['caixa-abrir-btn', 'caixa-entrada-btn', 'caixa-retirada-btn', 'caixa-fechar-btn'].forEach(btnId => {
     document.getElementById(btnId)?.addEventListener('click', e => {
       if (!isAuthenticated() || state.auth.perfil !== 'PROPRIETARIA') {
